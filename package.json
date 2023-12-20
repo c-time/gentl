@@ -1,0 +1,30 @@
+{
+  "name": "gentl",
+  "version": "1.0.0",
+  "description": "",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "prepare": "npm run build",
+    "test": "yarn jest"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/c-time/gentl.git"
+  },
+  "author": "PRODUCTION C-TIME Co,Ltd.",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/c-time/gentl"
+  },
+  "homepage": "https://github.com/c-time/gentl#readme",
+  "dependencies": {
+    "typescript": "^5.3.3"
+  },
+  "devDependencies": {
+    "@types/jest": "^29.5.11",
+    "jest": "28.0.0",
+    "ts-jest": "28.0.0"
+  }
+}
