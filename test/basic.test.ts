@@ -1,25 +1,29 @@
-import {Gentl} from "../src";
-import {SettingUtil} from "../src/core/settingUtil";
-const { JSDOM } = require("jsdom");
+import { test } from 'node:test';
+import { type GentlJOptions, process } from "../index.ts";
+import { assert } from 'console';
 
-const setting: SettingUtil = {
-  genAttr(keyword: string): string {
-    return `data-gen-${keyword}`
-  }
-}
+test("do nothing at div element", async ({assert}) => {
+  const html = `<div id="message">Hello world</div>`;
 
-test("do nothing at element", () => {
-  const gentl = new Gentl(setting);
-  
-  const origin = `<div id="message">Hello world</div>`;
-  
-  const jsdom = new JSDOM(origin);
-  
-  const elementHtml = gentl.generateElement({
-    element: jsdom.window.document.body
-  });
+  const ret = await process(
+    { data: {}, html },
+    {
+      rootParserType: "childElement",
+    }
+  );
 
-  expect(elementHtml).toBe(origin);
-  
-  console.log(elementHtml);
+  assert.equal(ret.html, html);
+});
+
+test("do nothing at html element", async ({assert}) => {
+  const html = `<html><head></head><body><div id="message">Hello world</div></body></html>`;
+
+  const ret = await process(
+    { data: {}, html },
+    {
+      rootParserType: "htmlDocument",
+    }
+  );
+
+  assert.equal(ret.html, html);
 });
