@@ -8,10 +8,16 @@
   },
   "type": "module",
   "scripts": {
-    "build": "run-s build:tsc build:esbuild",
+    "build": "run-s build:tsc build:node build:browser",
     "build:tsc": "tsc",
-    "build:esbuild": "esbuild src/Gentl.ts --bundle --outfile=dist/Gentl.js --platform=node",
+    "build:node": "esbuild src/Gentl.ts --bundle --outfile=dist/Gentl.node.js --platform=node",
+    "build:browser": "esbuild src/Gentl.ts --bundle --outfile=dist/Gentl.browser.js --platform=browser",
     "test": "node --experimental-strip-types --test test/**/*.test.ts"
+  },
+  "browser": {
+    "fs": false,
+    "path": false,
+    "os": false
   },
   "author": "",
   "license": "ISC",
