@@ -10,9 +10,18 @@
   },
   "exports": {
     ".": {
-      "browser": "./dist/index.browser.js",
-      "import": "./dist/index.node.js",
-      "require": "./dist/index.node.js"
+      "browser": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.browser.js"
+      },
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "require": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      }
     }
   },
   "type": "module",
