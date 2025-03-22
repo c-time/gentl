@@ -1,8 +1,10 @@
 {
-  "name": "gentl",
-  "version": "1.0.0",
+  "name": "@c-time/gentl",
+  "version": "1.0.3",
   "description": "",
-  "main": "index.js",
+  "main": "dist/Gentl.node.js",
+  "module": "dist/Gentl.browser.js",
+  "types": "dist/index.d.ts",
   "directories": {
     "test": "test"
   },
@@ -13,7 +15,8 @@
     "build:node": "esbuild src/Gentl.ts --bundle --outfile=dist/Gentl.node.js --platform=node",
     "build:browser": "node esbuild.config.cjs",
     "build:browser.backup": "esbuild src/Gentl.ts --bundle --outfile=dist/Gentl.browser.js --platform=browser",
-    "test": "node --experimental-strip-types --test test/**/*.test.ts"
+    "test": "node --experimental-strip-types --test test/**/*.test.ts",
+    "publish": "npm publish --access public"
   },
   "browser": {
     "fs": false,
@@ -35,8 +38,16 @@
     "assert": false,
     "util": false
   },
-  "author": "",
+  "author": "PRODUCTION C-TIME",
   "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/c-time/gentl.git"
+  },
+  "bugs": {
+    "url": "https://github.com/c-time/gentl/issues"
+  },
+  "homepage": "https://github.com/c-time/gentl#readme",
   "dependencies": {
     "jsdom": "^26.0.0"
   },
