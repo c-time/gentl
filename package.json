@@ -10,10 +10,10 @@
   },
   "type": "module",
   "scripts": {
-    "build": "run-s build:tsc build:node build:browser",
+    "build": "run-s build:tsc build:esbuild",
     "build:tsc": "tsc",
-    "build:node": "esbuild src/Gentl.ts --bundle --outfile=dist/Gentl.node.js --platform=node",
-    "build:browser": "node esbuild.config.cjs",
+    "build:node.backup": "esbuild src/Gentl.ts --bundle --outfile=dist/Gentl.node.js --platform=node",
+    "build:esbuild": "node esbuild.config.mjs",
     "build:browser.backup": "esbuild src/Gentl.ts --bundle --outfile=dist/Gentl.browser.js --platform=browser",
     "test": "node --experimental-strip-types --test test/**/*.test.ts",
     "publish": "npm publish --access public"
