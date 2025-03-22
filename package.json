@@ -1,6 +1,6 @@
 {
   "name": "@c-time/gentl",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "",
   "main": "dist/Gentl.node.js",
   "module": "dist/Gentl.browser.js",
