@@ -1,0 +1,1 @@
+export const joinLines = (lines: (string | undefined)[]): string => lines.filter(e => Boolean(e)).join("\n");
