@@ -180,6 +180,25 @@ const expandTemplateTag = ({
       );
     });
 
+    // data-gen-attrs
+    editingRoot.querySelectorAll(generateConst.queries.attrs).forEach((e) => {
+      if (e.hasAttribute(generateConst.attributes.scope)) {
+        return;
+      }
+      const attrs = e.getAttribute(generateConst.attributes.attrs) || "";
+      attrs.split(",").forEach((attr) => {
+        const [key, value] = attr.split(":").map((s) => s.trim());
+        if (!key) return;
+
+        const resolvedValue = pickData(value, data);
+        if (resolvedValue === undefined || resolvedValue === null) {
+          e.removeAttribute(key);
+        } else {
+          e.setAttribute(key, resolvedValue);
+        }
+      });
+    });
+
     // data-gen-if
     editingRoot.querySelectorAll(generateConst.queries.if).forEach((e) => {
       const ifValue = e.getAttribute(generateConst.attributes.if) || "";

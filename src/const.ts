@@ -17,6 +17,8 @@ const getRepeatNameAttribute = (o: GenerateOptions) =>
 
 const getIfAttribute = (o: GenerateOptions) => `${o.attributePrefix}-if`;
 
+const getAttrsAttribute = (o: GenerateOptions) => `${o.attributePrefix}-attrs`;
+
 const getIncludeAttribute = (o: GenerateOptions) =>
   `${o.attributePrefix}-include`;
 
@@ -27,6 +29,7 @@ export const getGenerateConst = (o: GenerateOptions) => {
   const attributes = {
     scope: getScopeAttribute(o),
     text: getTextAttribute(o),
+    attrs: getAttrsAttribute(o),
     html: getHtmlAttribute(o),
     cloned: getClonedAttribute(o),
     repeat: getRepeatAttribute(o),
@@ -42,6 +45,7 @@ export const getGenerateConst = (o: GenerateOptions) => {
       scope: `${o.templateTagName}[${getScopeAttribute(o)}="${o.scope}"]`,
       text: `[${getTextAttribute(o)}]`,
       html: `[${getHtmlAttribute(o)}]`,
+      attrs: `[${getAttrsAttribute(o)}]`,
       cloned: `[${getClonedAttribute(o)}="${o.scope}"]`,
       if: `[${getIfAttribute(o)}]`,
       comment: `[${getCommentAttribute(o)}]`,
