@@ -1,5 +1,5 @@
 import { test, type TestContext } from 'node:test';
-import { type GentlJInput, type GentlJOptions, process } from "../index.ts";
+import { type GentlJInput, type GentlJOptions, process } from "../src/index.ts";
 import { format as f } from "prettier";
 
 const assertHtml = async ({assert}: TestContext, actual: string, ex: string) => {

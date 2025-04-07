@@ -169,6 +169,17 @@ const expandTemplateTag = ({
       );
     });
 
+    // data-gen-html
+    editingRoot.querySelectorAll(generateConst.queries.html).forEach((e) => {
+      if (e.hasAttribute(generateConst.attributes.scope)) {
+        return;
+      }
+      e.innerHTML = pickStringData(
+        e.getAttribute(generateConst.attributes.html),
+        data
+      );
+    });
+
     // data-gen-if
     editingRoot.querySelectorAll(generateConst.queries.if).forEach((e) => {
       const ifValue = e.getAttribute(generateConst.attributes.if) || "";

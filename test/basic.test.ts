@@ -1,5 +1,6 @@
 import { test } from 'node:test';
-import { type GentlJOptions, process } from "../index.ts";
+import { type GentlJOptions, process }  from "../src/index.ts";
+import { format as f } from "prettier";;
 import { assert } from 'console';
 
 test("do nothing at div element", async ({assert}) => {

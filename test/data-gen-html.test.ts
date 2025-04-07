@@ -24,9 +24,9 @@ test("basic", async (context)=> {
   const result = await process(
     {
       html: `<template data-gen-scope="">
-  <div data-gen-text="name">Test</div>
+  <div data-gen-html="name">Test</div>
 </template>`,
-      data: { name: "Name" },
+      data: { name: "<span>Name</span>" },
     },
     options
   );
@@ -35,9 +35,9 @@ test("basic", async (context)=> {
     context,
     result.html,
     `<template data-gen-scope="">
-  <div data-gen-text="name">Test</div>
+  <div data-gen-html="name">Test</div>
 </template>
-<div data-gen-cloned="">Name</div>`
+<div data-gen-cloned=""><span>Name</span></div>`
   );
 });
 
@@ -45,9 +45,9 @@ test("at head", async (context)=> {
   const result = await process(
     {
       html: `<html><head><template data-gen-scope="">
-  <title data-gen-text="name">test</title>
+  <title data-gen-html="name">test</title>
 </template><title data-gen-cloned="">aaa</title></head><body>Hello world!</body></html>`,
-      data: { name: "Name" },
+      data: { name: "<span>Name</span>" },
     },
     {
       rootParserType: "htmlDocument",
@@ -58,8 +58,8 @@ test("at head", async (context)=> {
     context,
     result.html,
     `<html><head><template data-gen-scope="">
-    <title data-gen-text="name">test</title>
-  </template><title data-gen-cloned="">Name</title></head><body>Hello world!</body></html>`
+    <title data-gen-html="name">test</title>
+  </template><title data-gen-cloned="">&lt;span&gt;Name&lt;/span&gt;</title></head><body>Hello world!</body></html>`
   );
 });
 
@@ -67,9 +67,9 @@ test("refer object property", async ({assert})=> {
   const result = await process(
     {
       html: `<template data-gen-scope="">
-  <div data-gen-text="person.name">Test</div>
+  <div data-gen-html="person.name">Test</div>
 </template>`,
-      data: { person: { name: "Name" } },
+      data: { person: { name: "<span>Name</span>" } },
     },
     options
   );
@@ -77,26 +77,26 @@ test("refer object property", async ({assert})=> {
   assert.equal(
     result.html,
     `<template data-gen-scope="">
-  <div data-gen-text="person.name">Test</div>
+  <div data-gen-html="person.name">Test</div>
 </template>
-<div data-gen-cloned="">Name</div>`
+<div data-gen-cloned=""><span>Name</span></div>`
   );
 });
 
-test("not able to use gen-text at template tag", async ({assert})=> {
+test("not able to use gen-html at template tag", async ({assert})=> {
   const result = await process(
     {
-      html: `<template data-gen-scope="" data-gen-text="person.name">
+      html: `<template data-gen-scope="" data-gen-html="person.name">
   Test
 </template>`,
-      data: { person: { name: "Name" } },
+      data: { person: { name: "<span>Name</span>" } },
     },
     options
   );
 
   assert.equal(
     await formatHtml(result.html),
-    await formatHtml(`<template data-gen-scope="" data-gen-text="person.name">
+    await formatHtml(`<template data-gen-scope="" data-gen-html="person.name">
     Test
   </template>`)
   );

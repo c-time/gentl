@@ -1,5 +1,6 @@
 import { test } from 'node:test';
-import { type GentlJInput, type GentlJOptions, process } from "../index.ts";
+import { type GentlJInput, type GentlJOptions, process }  from "../src/index.ts";
+import { format as f } from "prettier";;
 import formatHtml from "./formatHtml.ts";
 
 const options: Partial<GentlJOptions> = {

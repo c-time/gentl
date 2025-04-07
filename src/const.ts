@@ -4,6 +4,8 @@ const getScopeAttribute = (o: GenerateOptions) => `${o.attributePrefix}-scope`;
 
 const getTextAttribute = (o: GenerateOptions) => `${o.attributePrefix}-text`;
 
+const getHtmlAttribute = (o: GenerateOptions) => `${o.attributePrefix}-html`;
+
 const getClonedAttribute = (o: GenerateOptions) =>
   `${o.attributePrefix}-cloned`;
 
@@ -25,6 +27,7 @@ export const getGenerateConst = (o: GenerateOptions) => {
   const attributes = {
     scope: getScopeAttribute(o),
     text: getTextAttribute(o),
+    html: getHtmlAttribute(o),
     cloned: getClonedAttribute(o),
     repeat: getRepeatAttribute(o),
     repeatName: getRepeatNameAttribute(o),
@@ -38,6 +41,7 @@ export const getGenerateConst = (o: GenerateOptions) => {
     queries: {
       scope: `${o.templateTagName}[${getScopeAttribute(o)}="${o.scope}"]`,
       text: `[${getTextAttribute(o)}]`,
+      html: `[${getHtmlAttribute(o)}]`,
       cloned: `[${getClonedAttribute(o)}="${o.scope}"]`,
       if: `[${getIfAttribute(o)}]`,
       comment: `[${getCommentAttribute(o)}]`,
