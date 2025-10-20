@@ -15,3 +15,15 @@ export type QueryRootType = "htmlDocument" | "xmlDocument" | "childElement";
 export type QueryRoot = ParentNode;
 export type QueryRootWrapper = (params: { html: string, rootType: QueryRootType }) => QueryRoot;
 export type GentlJInputData = object;
+
+// DOM環境関連のインターフェース
+export interface DOMEnvironment {
+  window: {
+    DOMParser: new () => DOMParser;
+    document: Document;
+  };
+}
+
+export interface DOMEnvironmentConstructor {
+  new (html?: string, options?: any): DOMEnvironment;
+}

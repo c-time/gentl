@@ -1,10 +1,11 @@
 import { test, type TestContext } from 'node:test';
 import { type GentlJInput, type GentlJOptions, process } from "../src/index.ts";
 import { format as f } from "prettier";
+import { createTestOptions } from './test-helper.ts';
 
-const options: Partial<GentlJOptions> = {
+const options: Partial<GentlJOptions> = createTestOptions({
   rootParserType: "childElement",
-};
+});
 
 const assertHtml = async ({assert} :TestContext, actual: string, ex: string) => {
   assert.equal(
@@ -59,3 +60,5 @@ test("refer object property", async ({assert})=> {
 <div data-gen-cloned="">{"key":"value"}</div>`
   );
 });
+
+

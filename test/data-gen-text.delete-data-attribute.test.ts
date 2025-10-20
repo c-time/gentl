@@ -1,12 +1,13 @@
 import { test } from 'node:test';
 import { type GentlJInput, type GentlJOptions, process } from "../src/index.ts";
 import { format as f } from "prettier";;
+import { createTestOptions } from './test-helper.ts';
 
-const options: GentlJOptions = {
+const options: GentlJOptions = createTestOptions({
   deleteDataAttributes: true,
   deleteTemplateTag: true,
   rootParserType: "childElement",
-};
+}) as GentlJOptions;
 
 const processWrapper = (input: GentlJInput) => {
   return process(input, options);
@@ -45,3 +46,5 @@ test("refer object property", async ({assert})=> {
 <div data-gen-cloned="">Name</div>`
   );
 });
+
+

@@ -5,8 +5,8 @@ import {
   type QueryRoot,
   type QueryRootType,
   type QueryRootWrapper,
+  type DOMEnvironmentConstructor,
 } from "./types.ts";
-import { JSDOM } from "jsdom";
 
 export type GentlJInput = {
   html: string;
@@ -22,18 +22,25 @@ export type GentlJOptions = {
   deleteTemplateTag: boolean;
   deleteDataAttributes: boolean;
   rootParserType: QueryRootType;
+  domEnvironment?: DOMEnvironmentConstructor;
 };
 
 const defaultOptions: GentlJOptions = {
   deleteDataAttributes: false,
   deleteTemplateTag: false,
   rootParserType: "htmlDocument",
+  domEnvironment: undefined,
 };
 
 const browserQueryRootWrapper: QueryRootWrapper = (params: {
   rootType: QueryRootType;
   html: string;
 }) => {
+  // ブラウザ環境チェック
+  if (typeof window === "undefined" || typeof DOMParser === "undefined") {
+    throw new Error("Browser environment required - DOMParser or window is not available");
+  }
+
   if (params.rootType === "htmlDocument") {
     const domParser = new DOMParser();
     return domParser.parseFromString(params.html, "text/html");
@@ -49,29 +56,28 @@ const browserQueryRootWrapper: QueryRootWrapper = (params: {
   return tmp.content;
 };
 
-const nodeQueryRootWrapper: QueryRootWrapper = (params: {
-  html: string;
-  rootType: QueryRootType;
-}) => {
-  if (!JSDOM) {
-    throw new Error("no node");
-  }
+const createNodeQueryRootWrapper = (domEnvironmentConstructor: DOMEnvironmentConstructor): QueryRootWrapper => {
+  return (params: { html: string; rootType: QueryRootType }) => {
+    if (!domEnvironmentConstructor) {
+      throw new Error("DOM environment constructor is required for Node.js environment");
+    }
 
-  const jsdom = new JSDOM();
+    const domEnv = new domEnvironmentConstructor();
 
-  if (params.rootType === "htmlDocument") {
-    const domParser = new jsdom.window.DOMParser();
-    return domParser.parseFromString(params.html, "text/html");
-  }
+    if (params.rootType === "htmlDocument") {
+      const domParser = new domEnv.window.DOMParser();
+      return domParser.parseFromString(params.html, "text/html");
+    }
 
-  if (params.rootType === "xmlDocument") {
-    const domParser = new jsdom.window.DOMParser();
-    return domParser.parseFromString(params.html, "text/xml");
-  }
+    if (params.rootType === "xmlDocument") {
+      const domParser = new domEnv.window.DOMParser();
+      return domParser.parseFromString(params.html, "text/xml");
+    }
 
-  const tmp = jsdom.window.document.createElement("template");
-  tmp.innerHTML = params.html;
-  return tmp.content;
+    const tmp = domEnv.window.document.createElement("template");
+    tmp.innerHTML = params.html;
+    return tmp.content;
+  };
 };
 
 const getNodes = (
@@ -119,9 +125,19 @@ export const process = (
     html: input.html,
     rootType: absOptions.rootParserType,
   };
-  const dom =
-    getNodes(opt, nodeQueryRootWrapper as QueryRootWrapper) ||
-    getNodes(opt, browserQueryRootWrapper);
+  
+  let dom;
+  
+  // Node.js環境でDOM環境が提供されている場合
+  if (absOptions.domEnvironment) {
+    const nodeQueryRootWrapper = createNodeQueryRootWrapper(absOptions.domEnvironment);
+    dom = getNodes(opt, nodeQueryRootWrapper);
+  }
+  
+  // ブラウザ環境またはNode.js環境でDOM環境が提供されていない場合
+  if (!dom) {
+    dom = getNodes(opt, browserQueryRootWrapper);
+  }
 
   if (!dom) {
     throw new Error("couldn't analyze dom");

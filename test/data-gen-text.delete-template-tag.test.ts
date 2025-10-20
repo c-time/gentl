@@ -1,6 +1,7 @@
 import { test, type TestContext } from 'node:test';
 import { type GentlJInput, type GentlJOptions, process } from "../src/index.ts";
 import { format as f } from "prettier";
+import { createTestOptions } from './test-helper.ts';
 
 const assertHtml = async ({assert}: TestContext, actual: string, ex: string) => {
   assert.equal(
@@ -15,11 +16,11 @@ const assertHtml = async ({assert}: TestContext, actual: string, ex: string) => 
   );
 };
 
-const options: GentlJOptions = {
+const options: GentlJOptions = createTestOptions({
   deleteDataAttributes: false,
   deleteTemplateTag: true,
   rootParserType: "childElement",
-};
+}) as GentlJOptions;
 
 const processWrapper = (input: GentlJInput) => {
   return process(input, options);
@@ -58,3 +59,5 @@ test("refer object property", async ({assert})=> {
 <div data-gen-cloned="">Name</div>`
   );
 });
+
+

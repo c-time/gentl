@@ -2,10 +2,11 @@ import { test } from 'node:test';
 import { type GentlJInput, type GentlJOptions, process }  from "../src/index.ts";
 import { format as f } from "prettier";
 import formatHtml from "./formatHtml.ts";
+import { createTestOptions } from './test-helper.ts';
 
-const options: Partial<GentlJOptions> = {
+const options: Partial<GentlJOptions> = createTestOptions({
   rootParserType: "childElement",
-};
+});
 
 test("basic", async ({assert})=> {
   const result = await process(
@@ -215,3 +216,6 @@ test("nested repeat and multiple elements", async ({assert})=> {
     )
   );
 });
+
+
+

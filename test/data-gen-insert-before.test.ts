@@ -1,10 +1,11 @@
 import { test } from 'node:test';
 import { type GentlJInput, type GentlJOptions, process } from "../src/index.ts";
 import formatHtml from "./formatHtml.ts";
+import { createTestOptions } from './test-helper.ts';
 
-const options: Partial<GentlJOptions> = {
+const options: Partial<GentlJOptions> = createTestOptions({
   rootParserType: "childElement",
-};
+});
 
 test("basic insert after (default behavior)", async ({assert}) => {
   const result = await process(
@@ -137,3 +138,5 @@ test("insert before with conditional false", async ({assert}) => {
 </template>`)
   );
 });
+
+
