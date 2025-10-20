@@ -7,12 +7,13 @@ import {
   type QueryRootWrapper,
   type DOMEnvironmentConstructor,
   type Logger,
+  type IncludeIo,
 } from "./types.ts";
 
 export type GentlJInput = {
   html: string;
   data: GentlJInputData;
-  includeIo?: Record<string, () => Promise<string>>;
+  includeIo?: IncludeIo;
   scope?: string;
 };
 

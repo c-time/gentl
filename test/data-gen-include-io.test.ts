@@ -1,5 +1,6 @@
 import { test } from 'node:test';
 import { type GentlJInput, type GentlJOptions, process }  from "../src/index.ts";
+import { type IncludeIo } from "../src/types.ts";
 import formatHtml from "./formatHtml.ts";
 import { createTestOptions } from './test-helper.ts';
 
@@ -8,7 +9,7 @@ const options: Partial<GentlJOptions> = createTestOptions({
 });
 
 test("gen-include with includeIo", async ({assert})=> {
-  const includeIo = {
+  const includeIo: IncludeIo = {
     'header': async () => '<header><h1>Dynamic Header</h1></header>',
     'footer': async () => '<footer><p>Dynamic Footer</p></footer>'
   };
@@ -31,7 +32,7 @@ test("gen-include with includeIo", async ({assert})=> {
 });
 
 test("gen-include with includeIo missing key", async ({assert})=> {
-  const includeIo = {
+  const includeIo: IncludeIo = {
     'header': async () => '<header><h1>Dynamic Header</h1></header>'
   };
 
@@ -52,7 +53,7 @@ test("gen-include with includeIo missing key", async ({assert})=> {
 });
 
 test("gen-include with includeIo error handling", async ({assert})=> {
-  const includeIo = {
+  const includeIo: IncludeIo = {
     'failing': async () => {
       throw new Error('Failed to load content');
     }
@@ -92,7 +93,7 @@ test("gen-include without includeIo", async ({assert})=> {
 });
 
 test("gen-include with includeIo multiple keys", async ({assert})=> {
-  const includeIo = {
+  const includeIo: IncludeIo = {
     'content1': async () => '<div>Content 1</div>',
     'content2': async () => '<div>Content 2</div>'
   };

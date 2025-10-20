@@ -8,6 +8,7 @@ import {
   type QueryRoot,
   type QueryRootWrapper,
   type Logger,
+  type IncludeIo,
 } from "./types.ts";
 
 const isScopeMatched = (scopeAttribute: string | null, targetScope: string | undefined): boolean => {
@@ -32,7 +33,7 @@ type ExpandTemplateTagParams = {
   scopeTemplate: GentlHTMLElement;
   queryRootWrapper: QueryRootWrapper;
   data: GentlJInputData;
-  includeIo?: Record<string, () => Promise<string>>;
+  includeIo?: IncludeIo;
   logger?: Logger;
   generateOptions: GenerateOptions;
   generateConst: GenerateConst;
@@ -114,7 +115,7 @@ const expandTemplateTag = async ({
 
     let htmlContent = "";
     try {
-      htmlContent = await includeIo[includeKey]();
+      htmlContent = await includeIo[includeKey](baseData);
     } catch (error) {
       if (logger) {
         logger({
@@ -295,7 +296,7 @@ export type GenerateParams = {
   root: QueryRoot;
   queryRootWrapper: QueryRootWrapper;
   data: GentlJInputData;
-  includeIo?: Record<string, () => Promise<string>>;
+  includeIo?: IncludeIo;
   logger?: Logger;
   options?: Partial<GenerateOptions>;
 };
