@@ -133,6 +133,53 @@ const result = process(
 console.log(result.html);
 ```
 
+## 🔍 デバッグ・ログ機能
+
+Gentlは実行時の詳細な情報を提供するログ機能を搭載しています。
+
+### Logger設定
+
+```javascript
+import { process } from '@c-time/gentl';
+
+const customLogger = (entry) => {
+  console.log(`[${entry.level.toUpperCase()}] ${entry.message}`);
+  if (entry.context) {
+    console.log('詳細:', entry.context);
+  }
+};
+
+const result = await process(
+  { html, data, includeIo },
+  { 
+    domEnvironment: JSDOM,
+    logger: customLogger 
+  }
+);
+```
+
+### ログエントリの種類
+
+| レベル | 説明 | 発生条件 |
+|--------|------|----------|
+| `warn` | データ参照エラー | 存在しないプロパティを参照した場合 |
+| `error` | I/Oエラー | `includeIo`関数でエラーが発生した場合 |
+
+### エラー処理の動作
+
+- **データ参照エラー**: 処理継続、該当要素は空文字として扱われる
+- **I/Oエラー**: 処理継続、該当要素はスキップされる
+
+```javascript
+// データ参照エラーの例
+const result = await process({
+  html: '<template data-gen-scope=""><div data-gen-text="missing.property">Default</div></template>',
+  data: {} // missing プロパティが存在しない
+}, { logger: console.log });
+// ログ: [WARN] Data reference error
+// 結果: <div>Default</div> → <div></div> (空文字)
+```
+
 ## API
 
 ### `process(input, options?)`
@@ -149,6 +196,7 @@ console.log(result.html);
   - `deleteTemplateTag?: boolean` - テンプレートタグを削除するか（デフォルト: false）
   - `deleteDataAttributes?: boolean` - データ属性を削除するか（デフォルト: false）
   - `domEnvironment: DOMEnvironmentConstructor` - DOM環境の注入（必須）
+  - `logger?: Logger` - デバッグログ出力関数（オプション）
 
 #### 戻り値
 

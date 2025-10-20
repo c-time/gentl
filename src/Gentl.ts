@@ -6,6 +6,7 @@ import {
   type QueryRootType,
   type QueryRootWrapper,
   type DOMEnvironmentConstructor,
+  type Logger,
 } from "./types.ts";
 
 export type GentlJInput = {
@@ -19,7 +20,7 @@ export type GentlJOutput = {
 };
 
 export type GentlJOptions = {
-  // logger: Logger // <- need to inject logger
+  logger?: Logger;
   deleteTemplateTag: boolean;
   deleteDataAttributes: boolean;
   rootParserType: QueryRootType;
@@ -27,6 +28,7 @@ export type GentlJOptions = {
 };
 
 const defaultOptions: GentlJOptions = {
+  logger: undefined,
   deleteDataAttributes: false,
   deleteTemplateTag: false,
   rootParserType: "htmlDocument",
@@ -127,6 +129,7 @@ export const process = async (
     queryRootWrapper: dom.queryRootWrapper,
     data: input.data,
     includeIo: input.includeIo,
+    logger: absOptions.logger,
   });
 
   if (absOptions.rootParserType === "childElement") {

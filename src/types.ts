@@ -32,3 +32,21 @@ export interface DOMEnvironmentOptions {
 export interface DOMEnvironmentConstructor<T extends DOMEnvironmentOptions = DOMEnvironmentOptions> {
   new (html?: string, options?: T): DOMEnvironment;
 }
+
+// ログ機能
+export type LogLevel = 'debug' | 'info' | 'warn' | 'error';
+
+export interface LogEntry {
+  level: LogLevel;
+  message: string;
+  context?: {
+    element?: string;
+    attribute?: string;
+    formula?: string;
+    data?: any;
+    error?: Error;
+  };
+  timestamp: Date;
+}
+
+export type Logger = (entry: LogEntry) => void;

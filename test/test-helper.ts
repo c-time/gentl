@@ -1,5 +1,25 @@
 import { JSDOM } from "jsdom";
-import { type GentlJOptions } from "../src/index.ts";
+import { type GentlJOptions, type Logger, type LogEntry, type LogLevel } from "../src/index.ts";
+
+/**
+ * テスト用のシンプルなLogger実装
+ * ログエントリを配列に保存し、コンソール出力も行う
+ */
+export class TestLogger {
+  public logs: LogEntry[] = [];
+
+  log: Logger = (entry: LogEntry) => {
+    this.logs.push(entry);
+  };
+
+  clear() {
+    this.logs = [];
+  }
+
+  getLogsByLevel(level: LogLevel): LogEntry[] {
+    return this.logs.filter(log => log.level === level);
+  }
+}
 
 /**
  * テスト用のGentlJオプションを作成します

@@ -7,6 +7,7 @@ import {
   type GentlJInputData,
   type QueryRoot,
   type QueryRootWrapper,
+  type Logger,
 } from "./types.ts";
 
 type ExpandTemplateTagParams = {
@@ -14,6 +15,7 @@ type ExpandTemplateTagParams = {
   queryRootWrapper: QueryRootWrapper;
   data: GentlJInputData;
   includeIo?: Record<string, () => Promise<string>>;
+  logger?: Logger;
   generateOptions: GenerateOptions;
   generateConst: GenerateConst;
 };
@@ -64,13 +66,14 @@ const expandTemplateTag = async ({
   queryRootWrapper,
   data: baseData,
   includeIo,
+  logger,
   generateOptions,
   generateConst,
 }: ExpandTemplateTagParams): Promise<void> => {
   // data-gen-if at template tag
   if (scopeTemplate.hasAttribute(generateConst.attributes.if)) {
     const ifValue = scopeTemplate.getAttribute(generateConst.attributes.if);
-    if (!pickData(ifValue, baseData)) {
+    if (!pickData(ifValue, baseData, logger)) {
       return;
     }
   }
@@ -95,7 +98,20 @@ const expandTemplateTag = async ({
     try {
       htmlContent = await includeIo[includeKey]();
     } catch (error) {
-      console.error(`Failed to load include content for key "${includeKey}":`, error);
+      if (logger) {
+        logger({
+          level: 'error',
+          message: 'Failed to load include content',
+          context: {
+            attribute: 'data-gen-include',
+            formula: includeKey,
+            error: error instanceof Error ? error : new Error(String(error))
+          },
+          timestamp: new Date()
+        });
+      } else {
+        console.error(`[Gentl] Failed to load include content for key "${includeKey}":`, error);
+      }
       return;
     }
 
@@ -133,7 +149,7 @@ const expandTemplateTag = async ({
       return [baseData];
     }
 
-    const pickedData = pickData(repeatValue, baseData);
+    const pickedData = pickData(repeatValue, baseData, logger);
     if (!Array.isArray(pickedData)) {
       throw new Error(
         `"${repeatNameValue}" is not array at ${generateConst.attributes.repeat}`
@@ -181,6 +197,7 @@ const expandTemplateTag = async ({
           queryRootWrapper,
           data,
           includeIo,
+          logger,
           generateOptions,
           generateConst,
         });
@@ -195,7 +212,8 @@ const expandTemplateTag = async ({
       }
       e.textContent = pickStringData(
         e.getAttribute(generateConst.attributes.text),
-        data
+        data,
+        logger
       );
     });
 
@@ -206,7 +224,8 @@ const expandTemplateTag = async ({
       }
       e.innerHTML = pickStringData(
         e.getAttribute(generateConst.attributes.html),
-        data
+        data,
+        logger
       );
     });
 
@@ -217,7 +236,8 @@ const expandTemplateTag = async ({
       }
       e.innerHTML = JSON.stringify(pickData(
         e.getAttribute(generateConst.attributes.json),
-        data
+        data,
+        logger
       ));
     });
 
@@ -231,7 +251,7 @@ const expandTemplateTag = async ({
         const [key, value] = attr.split(":").map((s) => s.trim());
         if (!key) return;
 
-        const resolvedValue = pickData(value, data);
+        const resolvedValue = pickData(value, data, logger);
         if (resolvedValue === undefined || resolvedValue === null) {
           e.removeAttribute(key);
         } else {
@@ -243,7 +263,7 @@ const expandTemplateTag = async ({
     // data-gen-if
     editingRoot.querySelectorAll(generateConst.queries.if).forEach((e) => {
       const ifValue = e.getAttribute(generateConst.attributes.if) || "";
-      if (!pickData(ifValue, baseData)) {
+      if (!pickData(ifValue, baseData, logger)) {
         e.remove();
       }
     });
@@ -270,6 +290,7 @@ export type GenerateParams = {
   queryRootWrapper: QueryRootWrapper;
   data: GentlJInputData;
   includeIo?: Record<string, () => Promise<string>>;
+  logger?: Logger;
   options?: Partial<GenerateOptions>;
 };
 
@@ -278,6 +299,7 @@ export const generate = async ({
   queryRootWrapper,
   data,
   includeIo,
+  logger,
   options,
 }: GenerateParams): Promise<QueryRoot> => {
   const generateOptions: GenerateOptions = {
@@ -303,6 +325,7 @@ export const generate = async ({
         queryRootWrapper,
         data,
         includeIo,
+        logger,
         generateOptions,
         generateConst,
       })
