@@ -318,6 +318,80 @@ const result = await process({
 </table>
 ```
 
+### 🎯 **スコープフィルタリング（部分更新）**
+
+大きなページで特定の部分のみを更新したい場合に便利です：
+
+```html
+<!-- ページ全体のテンプレート -->
+<template data-gen-scope="header navigation">
+  <header>
+    <h1 data-gen-text="site.title">サイト名</h1>
+    <nav data-gen-repeat="navItems" data-gen-repeat-name="item">
+      <a data-gen-attrs="href:item.url" data-gen-text="item.label">リンク</a>
+    </nav>
+  </header>
+</template>
+
+<template data-gen-scope="content article">
+  <main>
+    <h2 data-gen-text="article.title">記事タイトル</h2>
+    <div data-gen-html="article.content">記事内容</div>
+  </main>
+</template>
+
+<template data-gen-scope="sidebar widget">
+  <aside>
+    <div data-gen-repeat="widgets" data-gen-repeat-name="widget">
+      <h3 data-gen-text="widget.title">ウィジェット</h3>
+      <div data-gen-html="widget.content">コンテンツ</div>
+    </div>
+  </aside>
+</template>
+
+<template data-gen-scope="footer">
+  <footer data-gen-text="site.copyright">コピーライト</footer>
+</template>
+```
+
+```javascript
+// ナビゲーションのみ更新
+const navUpdate = await process({
+  html: pageTemplate,
+  data: { 
+    site: { title: "新サイト名" },
+    navItems: [/* 新しいナビ項目 */]
+  },
+  scope: "navigation"  // navigationスコープのみ処理
+});
+
+// 記事コンテンツのみ更新
+const articleUpdate = await process({
+  html: pageTemplate,
+  data: {
+    article: {
+      title: "新しい記事",
+      content: "<p>新しい記事の内容</p>"
+    }
+  },
+  scope: "article"  // articleスコープのみ処理
+});
+
+// サイドバーウィジェットのみ更新
+const sidebarUpdate = await process({
+  html: pageTemplate,
+  data: {
+    widgets: [/* 新しいウィジェット配列 */]
+  },
+  scope: "widget"  // widgetスコープのみ処理
+});
+```
+
+**メリット**:
+- 🚀 **パフォーマンス**: 必要な部分のみ処理で高速化
+- 🎯 **精密制御**: 特定のコンポーネントのみ更新可能
+- 🔧 **開発効率**: 部分的なテスト・デバッグが容易
+
 ## API
 
 ### `process(input, options?)`
@@ -328,6 +402,7 @@ const result = await process({
   - `html: string` - テンプレートHTML
   - `data: object` - テンプレートデータ
   - `includeIo?: Record<string, () => Promise<string>>` - `data-gen-include`用のI/O関数群
+  - `scope?: string` - 処理対象のスコープを指定（部分的なテンプレート処理が可能）
 
 - `options?: Partial<GentlJOptions>`
   - `rootParserType?: 'htmlDocument' | 'xmlDocument' | 'childElement'` - パーサータイプ（デフォルト: 'htmlDocument'）
@@ -373,10 +448,73 @@ Gentlの全ての機能は`<template data-gen-scope="">`タグ内で動作し、
 </template>
 ```
 
-**特徴**:
+**基本特徴**:
 - 必須属性：全ての`data-gen-*`は`data-gen-scope`内でのみ有効
 - ネスト可能：テンプレート内に別のテンプレートを配置可能
 - 値は通常空文字列（`""`）を指定
+
+#### スコープフィルタリング機能
+
+`data-gen-scope`には**スコープ名**を指定でき、処理時に特定のスコープのみを選択的に処理できます。
+
+```html
+<!-- 複数のスコープを持つテンプレート -->
+<template data-gen-scope="header navigation">
+  <nav data-gen-text="title">ナビゲーション</nav>
+</template>
+
+<template data-gen-scope="content">
+  <main data-gen-text="mainContent">メインコンテンツ</main>
+</template>
+
+<template data-gen-scope="footer social">
+  <footer data-gen-text="footerText">フッター</footer>
+</template>
+```
+
+**スコープ指定による部分処理**:
+```javascript
+// "header"スコープのみ処理
+const result = await process({
+  html: templateHtml,
+  data: { title: "サイトナビ" },
+  scope: "header"  // ← スコープを指定
+}, { domEnvironment: JSDOM });
+
+// 結果：headerスコープを含むテンプレートのみが処理される
+// → "header navigation" スコープのテンプレートが処理される
+// → "content", "footer social" スコープは処理されない
+```
+
+**スコープフィルタリングの特徴**:
+- **スペース区切り対応**: `data-gen-scope="header navigation"`のように複数スコープ指定可能
+- **部分マッチ**: `scope="header"`指定時、`"header navigation"`を含むテンプレートも処理される
+- **ネスト対応**: ネストしたテンプレートでもスコープフィルタリングが適用される
+- **後方互換性**: `scope`未指定の場合は全テンプレートが処理される（従来通り）
+
+**実用例**:
+```javascript
+// ヘッダーのみ更新
+const headerResult = await process({
+  html: pageTemplate,
+  data: headerData,
+  scope: "header"
+});
+
+// フッターのみ更新
+const footerResult = await process({
+  html: pageTemplate,
+  data: footerData,
+  scope: "footer"
+});
+
+// 全体を更新
+const fullResult = await process({
+  html: pageTemplate,
+  data: allData
+  // scope未指定で全テンプレート処理
+});
+```
 
 ### data-gen-text（テキスト生成）
 
@@ -798,11 +936,53 @@ console.log(result.html);
   </ul>
 ```
 
+### 🎯 スコープフィルタリングの実行例
+
+```javascript
+import { process } from '@c-time/gentl';
+import { JSDOM } from 'jsdom';
+
+const html = `
+<template data-gen-scope="header main">
+  <h1 data-gen-text="title">タイトル</h1>
+</template>
+
+<template data-gen-scope="sidebar">
+  <aside data-gen-text="sidebarContent">サイドバー</aside>
+</template>
+
+<template data-gen-scope="footer">
+  <footer data-gen-text="footerText">フッター</footer>
+</template>
+`;
+
+const data = {
+  title: 'メインタイトル',
+  sidebarContent: 'サイドバー情報',
+  footerText: '© 2024 サイト名'
+};
+
+// メインコンテンツのみ処理（headerスコープを含むテンプレートのみ）
+const mainOnly = await process({
+  html,
+  data,
+  scope: 'main'  // "header main"スコープが処理される
+}, { domEnvironment: JSDOM });
+
+// 全体処理
+const fullPage = await process({
+  html,
+  data
+  // scopeなし = 全テンプレート処理
+}, { domEnvironment: JSDOM });
+```
+
 ### 💡 重要なポイント
 
 - 📦 **テンプレート保持**: 元の`<template>`タグは常に保持されます
 - 🏷️ **識別属性**: 生成されたコンテンツには`data-gen-cloned`属性が付きます
 - 🔧 **再利用可能**: 同じテンプレートで異なるデータを何度でも生成可能
+- 🎯 **スコープ制御**: `scope`パラメータで処理範囲を精密制御可能
 
 ## ライセンス
 
