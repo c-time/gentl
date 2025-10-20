@@ -180,6 +180,17 @@ const expandTemplateTag = ({
       );
     });
 
+    // data-gen-json
+    editingRoot.querySelectorAll(generateConst.queries.json).forEach((e) => {
+      if (e.hasAttribute(generateConst.attributes.scope)) {
+        return;
+      }
+      e.innerHTML = JSON.stringify(pickData(
+        e.getAttribute(generateConst.attributes.json),
+        data
+      ));
+    });
+
     // data-gen-attrs
     editingRoot.querySelectorAll(generateConst.queries.attrs).forEach((e) => {
       if (e.hasAttribute(generateConst.attributes.scope)) {
