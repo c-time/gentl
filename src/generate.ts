@@ -86,20 +86,17 @@ const expandTemplateTag = async ({
   );
 
   if (includeKey) {
+    // includeIoが存在しない、または対象のキーが存在しない場合は何もしない
+    if (!includeIo || !includeIo[includeKey]) {
+      return;
+    }
+
     let htmlContent = "";
-    
-    if (includeIo && includeIo[includeKey]) {
-      // includeIoから取得
-      try {
-        htmlContent = await includeIo[includeKey]();
-      } catch (error) {
-        console.error(`Failed to load include content for key "${includeKey}":`, error);
-        return;
-      }
-    } else {
-      // フォールバック: 従来のpickDataから取得
-      const pickedData = pickData(includeKey, baseData);
-      htmlContent = pickedData?.toString() || "";
+    try {
+      htmlContent = await includeIo[includeKey]();
+    } catch (error) {
+      console.error(`Failed to load include content for key "${includeKey}":`, error);
+      return;
     }
 
     const editingRoot = queryRootWrapper({

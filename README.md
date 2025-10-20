@@ -231,13 +231,7 @@ Gentlの全ての機能は`<template data-gen-scope="">`タグ内で動作し、
 
 ### 共通ソースの取り込み（data-gen-include）
 
-#### 💽 データからの取得
-```html
-<template data-gen-scope="" data-gen-include="headerHtml"></template>
-```
-データ: `{ headerHtml: "<header><h1>サイトタイトル</h1></header>" }`
-
-#### 🔌 外部I/Oからの取得（includeIo）
+####  外部I/Oからの取得（includeIo）
 ```javascript
 const includeIo = {
   'header': async () => {
@@ -258,7 +252,7 @@ const result = await process({
 });
 ```
 
-`includeIo`が存在しない場合は、従来通り`data`からフォールバックします。
+`includeIo`が存在しない、または指定されたキーが存在しない場合は、何も生成されません（テンプレートのみ残ります）。
 
 ## 実行例
 

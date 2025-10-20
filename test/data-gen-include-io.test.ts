@@ -30,7 +30,7 @@ test("gen-include with includeIo", async ({assert})=> {
   );
 });
 
-test("gen-include with includeIo fallback to data", async ({assert})=> {
+test("gen-include with includeIo missing key", async ({assert})=> {
   const includeIo = {
     'header': async () => '<header><h1>Dynamic Header</h1></header>'
   };
@@ -44,11 +44,10 @@ test("gen-include with includeIo fallback to data", async ({assert})=> {
     options
   );
 
+  // includeIoに存在しないキーの場合、テンプレートのみ残る（コンテンツは生成されない）
   assert.equal(
     await formatHtml(result.html),
-    await formatHtml(`<template data-gen-scope="" data-gen-include="footer"></template>
-    <div data-gen-cloned="">Fallback Footer</div>
-`)
+    await formatHtml(`<template data-gen-scope="" data-gen-include="footer"></template>`)
   );
 });
 
@@ -72,6 +71,23 @@ test("gen-include with includeIo error handling", async ({assert})=> {
   assert.equal(
     await formatHtml(result.html),
     await formatHtml(`<template data-gen-scope="" data-gen-include="failing"></template>`)
+  );
+});
+
+test("gen-include without includeIo", async ({assert})=> {
+  const result = await process(
+    {
+      html: `<template data-gen-scope="" data-gen-include="content"></template>`,
+      data: { "content": "<div>This should not be used</div>"}
+      // includeIoは提供されていない
+    },
+    options
+  );
+
+  // includeIoが提供されていない場合、テンプレートのみ残る
+  assert.equal(
+    await formatHtml(result.html),
+    await formatHtml(`<template data-gen-scope="" data-gen-include="content"></template>`)
   );
 });
 

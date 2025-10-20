@@ -12,7 +12,10 @@ test("gen-include basic", async ({assert})=> {
   const result = await process(
     {
       html: `<template data-gen-scope="" data-gen-include="testHtml"></template>`,
-      data: { "testHtml": "<div>Hello! world!!</div>"},
+      data: {},
+      includeIo: {
+        "testHtml": async () => "<div>Hello! world!!</div>"
+      }
     },
     options
   );
@@ -29,7 +32,10 @@ test("gen-include multiple elements", async ({assert})=> {
   const result = await process(
     {
       html: `<template data-gen-scope="" data-gen-include="testHtml"></template>`,
-      data: { "testHtml": "<div>Hello! world!!</div><div>Hello! second world!!</div>"},
+      data: {},
+      includeIo: {
+        "testHtml": async () => "<div>Hello! world!!</div><div>Hello! second world!!</div>"
+      }
     },
     options
   );
@@ -47,7 +53,10 @@ test("gen-include multiple elements and text node", async ({assert})=> {
   const result = await process(
     {
       html: `<template data-gen-scope="" data-gen-include="testHtml"></template>`,
-      data: { "testHtml": "<div>Hello! world!!</div>text node<div>Hello! second world!!</div>"},
+      data: {},
+      includeIo: {
+        "testHtml": async () => "<div>Hello! world!!</div>text node<div>Hello! second world!!</div>"
+      }
     },
     options
   );
@@ -65,7 +74,10 @@ test("gen-include malformed html", async ({assert})=> {
   const result = await process(
     {
       html: `<template data-gen-scope="" data-gen-include="testHtml"></template>`,
-      data: { "testHtml": "<div>Hello! world!!</div><p>Hello! second world!!</div>"},
+      data: {},
+      includeIo: {
+        "testHtml": async () => "<div>Hello! world!!</div><p>Hello! second world!!</div>"
+      }
     },
     options
   );
