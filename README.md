@@ -333,6 +333,8 @@ const result = await process({
 
 - `options?: Partial<GentlJOptions>`
   - `rootParserType?: 'htmlDocument' | 'xmlDocument' | 'childElement'` - パーサータイプ（デフォルト: 'htmlDocument'）
+    - `'htmlDocument'`: 完全なHTML文書として出力（`<html><head></head><body></body></html>`が自動付与）
+    - `'childElement'`: 生成された要素のみを出力
   - `deleteTemplateTag?: boolean` - テンプレートタグを削除するか（デフォルト: false）
   - `deleteDataAttributes?: boolean` - データ属性を削除するか（デフォルト: false）
   - `domEnvironment: DOMEnvironmentConstructor` - DOM環境の注入（必須）
@@ -401,17 +403,18 @@ Gentlの全ての機能は`<template data-gen-scope="">`タグ内で動作し、
 
 結果:
 ```html
-<template data-gen-scope="">
+<html><head><template data-gen-scope="">
   <h1 data-gen-text="title">デフォルトタイトル</h1>
   <p data-gen-text="user.name">ゲストユーザー</p>
   <span data-gen-text="count">0</span>個
-</template>
-<h1 data-gen-cloned="">新着記事一覧</h1>
-<p data-gen-cloned="">田中太郎</p>
-<span data-gen-cloned="">5</span>
+</template><h1 data-gen-cloned="">新着記事一覧</h1><p data-gen-cloned="">田中太郎</p><span data-gen-cloned="">5</span></head><body></body></html>
 ```
 
-**注意**: `data-gen-text`は要素内のテキストコンテンツを完全に置き換えるため、「個」のような周辺テキストは削除されます。周辺テキストを保持したい場合は、別の要素に分けて記述してください：
+**注意**: 
+- `data-gen-text`は要素内のテキストコンテンツを完全に置き換えるため、「個」のような周辺テキストは削除されます
+- HTMLDocument形式で出力されるため、`<html>`、`<head>`、`<body>`タグが自動的に追加されます
+
+周辺テキストを保持したい場合は、別の要素に分けて記述してください：
 
 ```html
 <template data-gen-scope="">
@@ -447,12 +450,10 @@ Gentlの全ての機能は`<template data-gen-scope="">`タグ内で動作し、
 
 結果:
 ```html
-<template data-gen-scope="">
+<html><head><template data-gen-scope="">
   <div data-gen-html="description">デフォルト説明</div>
   <section data-gen-html="article.content">記事がありません</section>
-</template>
-<div data-gen-cloned=""><strong>重要</strong>なお知らせ</div>
-<section data-gen-cloned=""><p>本日は<em>晴天</em>です。</p><ul><li>気温: 25度</li><li>湿度: 60%</li></ul></section>
+</template><div data-gen-cloned=""><strong>重要</strong>なお知らせ</div><section data-gen-cloned=""><p>本日は<em>晴天</em>です。</p><ul><li>気温: 25度</li><li>湿度: 60%</li></ul></section></head><body></body></html>
 ```
 
 **⚠️ 注意事項**:
@@ -537,26 +538,39 @@ Gentlの全ての機能は`<template data-gen-scope="">`タグ内で動作し、
 
 結果:
 ```html
-<template data-gen-scope="" data-gen-repeat="articles" data-gen-repeat-name="article"><!-- 元のテンプレート --></template>
+<template data-gen-scope="" data-gen-repeat="articles" data-gen-repeat-name="article">
+  <div class="article-card">
+    <h3 data-gen-text="article.title">タイトル</h3>
+    <p data-gen-text="article.excerpt">要約</p>
+    <small data-gen-text="article.author">著者</small>
+    <span data-gen-if="article.isPremium">🌟 プレミアム</span>
+  </div>
+</template>
 <div data-gen-cloned="" class="article-card">
-  <h3 data-gen-cloned="">記事1</h3>
-  <p data-gen-cloned="">最初の記事です</p>
-  <small data-gen-cloned="">田中</small>
-</div>
+    <h3>記事1</h3>
+    <p>最初の記事です</p>
+    <small>田中</small>
+
+  </div>
 <div data-gen-cloned="" class="article-card">
-  <h3 data-gen-cloned="">記事2</h3>
-  <p data-gen-cloned="">二番目の記事</p>
-  <small data-gen-cloned="">佐藤</small>
-  <span data-gen-cloned="">🌟 プレミアム</span>
-</div>
+    <h3>記事2</h3>
+    <p>二番目の記事</p>
+    <small>佐藤</small>
+
+  </div>
 <div data-gen-cloned="" class="article-card">
-  <h3 data-gen-cloned="">記事3</h3>
-  <p data-gen-cloned="">三番目の記事</p>
-  <small data-gen-cloned="">鈴木</small>
-</div>
+    <h3>記事3</h3>
+    <p>三番目の記事</p>
+    <small>鈴木</small>
+
+  </div>
 ```
 
-**重要**: `data-gen-repeat`は`<template>`タグに設定します。`data-gen-repeat-name`を使用することで、繰り返しの各要素に `article` という変数名でアクセスできます。
+**重要**: 
+- `data-gen-repeat`は`<template>`タグに設定します
+- `data-gen-repeat-name`を使用することで、繰り返しの各要素に `article` という変数名でアクセスできます
+- `rootParserType: 'childElement'`を使用した場合、HTML要素のみが出力されます
+- `data-gen-text`で置き換えられた要素内では、`data-gen-cloned`属性は付与されません
 
 **ネストした繰り返し**:
 ```html
@@ -777,10 +791,8 @@ console.log(result.html);
 </template>
 <div data-gen-cloned="">Welcome to Gentl</div>
 <ul data-gen-cloned="">
-  <li data-gen-cloned="">Item 1</li>
-  <li data-gen-cloned="">Item 2</li>
-  <li data-gen-cloned="">Item 3</li>
-</ul>
+    <li>Item 1</li><li>Item 2</li><li>Item 3</li>
+  </ul>
 ```
 
 ### 💡 重要なポイント
