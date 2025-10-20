@@ -11,3 +11,25 @@ export function createTestOptions(options?: Partial<GentlJOptions>): Partial<Gen
     ...options,
   };
 }
+
+/**
+ * ブラウザ環境用のDOM環境クラス
+ * ブラウザのグローバルなwindowとDOMParserを使用
+ */
+export class BrowserDOMEnvironment {
+  public window: {
+    DOMParser: new () => DOMParser;
+    document: Document;
+  };
+
+  constructor() {
+    if (typeof window === "undefined" || typeof DOMParser === "undefined") {
+      throw new Error("Browser environment required - window or DOMParser is not available");
+    }
+    
+    this.window = {
+      DOMParser: DOMParser,
+      document: window.document,
+    };
+  }
+}

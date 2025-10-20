@@ -32,34 +32,12 @@ const defaultOptions: GentlJOptions = {
   domEnvironment: undefined,
 };
 
-const browserQueryRootWrapper: QueryRootWrapper = (params: {
-  rootType: QueryRootType;
-  html: string;
-}) => {
-  // ブラウザ環境チェック
-  if (typeof window === "undefined" || typeof DOMParser === "undefined") {
-    throw new Error("Browser environment required - DOMParser or window is not available");
-  }
 
-  if (params.rootType === "htmlDocument") {
-    const domParser = new DOMParser();
-    return domParser.parseFromString(params.html, "text/html");
-  }
 
-  if (params.rootType === "xmlDocument") {
-    const domParser = new DOMParser();
-    return domParser.parseFromString(params.html, "text/xml");
-  }
-
-  const tmp = window.document.createElement("template");
-  tmp.innerHTML = params.html;
-  return tmp.content;
-};
-
-const createNodeQueryRootWrapper = (domEnvironmentConstructor: DOMEnvironmentConstructor): QueryRootWrapper => {
+const createQueryRootWrapper = (domEnvironmentConstructor: DOMEnvironmentConstructor): QueryRootWrapper => {
   return (params: { html: string; rootType: QueryRootType }) => {
     if (!domEnvironmentConstructor) {
-      throw new Error("DOM environment constructor is required for Node.js environment");
+      throw new Error("DOM environment constructor is required");
     }
 
     const domEnv = new domEnvironmentConstructor();
@@ -126,18 +104,13 @@ export const process = (
     rootType: absOptions.rootParserType,
   };
   
-  let dom;
-  
-  // Node.js環境でDOM環境が提供されている場合
-  if (absOptions.domEnvironment) {
-    const nodeQueryRootWrapper = createNodeQueryRootWrapper(absOptions.domEnvironment);
-    dom = getNodes(opt, nodeQueryRootWrapper);
+  // DOM環境が提供されていない場合はエラー
+  if (!absOptions.domEnvironment) {
+    throw new Error("DOM environment is required. Please provide domEnvironment option.");
   }
-  
-  // ブラウザ環境またはNode.js環境でDOM環境が提供されていない場合
-  if (!dom) {
-    dom = getNodes(opt, browserQueryRootWrapper);
-  }
+
+  const queryRootWrapper = createQueryRootWrapper(absOptions.domEnvironment);
+  const dom = getNodes(opt, queryRootWrapper);
 
   if (!dom) {
     throw new Error("couldn't analyze dom");

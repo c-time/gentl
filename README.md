@@ -5,8 +5,8 @@ Gentl は軽量でコアシステムに焦点を当てたJavaScript/TypeScript�
 ## 特徴
 
 - **軽量**: 依存関係ゼロのコアシステム
-- **環境非依存**: ブラウザとNode.js両方で動作
-- **DOM環境注入**: Node.js環境では実行時にDOM環境を注入
+- **完全環境非依存**: 全ての環境でDOM環境を外部注入
+- **柔軟なDOM環境**: JSDOM、Happy DOM、ブラウザ環境など任意のDOM環境に対応
 
 ## インストール
 
@@ -14,7 +14,7 @@ Gentl は軽量でコアシステムに焦点を当てたJavaScript/TypeScript�
 npm install @c-time/gentl
 ```
 
-Node.js環境で使用する場合は、DOM環境ライブラリも開発依存関係としてインストールしてください：
+使用する環境に応じて、DOM環境ライブラリも併せてインストールしてください：
 
 ```bash
 # JSDOMを使用する場合
@@ -23,7 +23,7 @@ npm install --save-dev jsdom
 # Happy DOMを使用する場合
 npm install --save-dev happy-dom
 
-# その他のDOM環境ライブラリも使用可能
+# ブラウザ環境では追加インストールは不要（グローバルのDOM APIを使用）
 ```
 
 ## 使用方法
@@ -33,13 +33,24 @@ npm install --save-dev happy-dom
 ```javascript
 import { process } from '@c-time/gentl';
 
+// ブラウザ環境用のDOM環境クラス
+class BrowserDOMEnvironment {
+  constructor() {
+    this.window = {
+      DOMParser: DOMParser,
+      document: window.document,
+    };
+  }
+}
+
 const result = process(
   {
     html: '<template data-gen-scope=""><div data-gen-text="name">Default</div></template>',
     data: { name: 'Hello World' }
   },
   {
-    rootParserType: 'childElement'
+    rootParserType: 'childElement',
+    domEnvironment: BrowserDOMEnvironment  // ← ブラウザ環境も注入
   }
 );
 
@@ -111,7 +122,7 @@ console.log(result.html);
   - `rootParserType?: 'htmlDocument' | 'xmlDocument' | 'childElement'` - パーサータイプ（デフォルト: 'htmlDocument'）
   - `deleteTemplateTag?: boolean` - テンプレートタグを削除するか（デフォルト: false）
   - `deleteDataAttributes?: boolean` - データ属性を削除するか（デフォルト: false）
-  - `domEnvironment?: DOMEnvironmentConstructor` - Node.js環境でのDOM環境注入（Node.js使用時は必須）
+  - `domEnvironment: DOMEnvironmentConstructor` - DOM環境の注入（必須）
 
 #### 戻り値
 
