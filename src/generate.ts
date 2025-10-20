@@ -21,10 +21,14 @@ const expandEditingRootChildren = (
   editingRoot: ParentNode,
   { generateConst, generateOptions, scopeTemplate }: ExpandTemplateTagParams
 ) => {
-  Array.from(editingRoot.childNodes)
-    .filter((e) => e.nodeType === 1)
-    .reverse()
-    .forEach((e) => {
+  const children = Array.from(editingRoot.childNodes).filter((e) => e.nodeType === 1);
+  
+  // Only reverse if inserting after (default behavior)
+  if (!scopeTemplate.hasAttribute(generateConst.attributes.insertBefore)) {
+    children.reverse();
+  }
+  
+  children.forEach((e) => {
       const element = e as GentlElement;
       const attributes = element.getAttributeNames();
       const entries = attributes.map((a) => [a, element.getAttribute(a)]);
@@ -45,7 +49,12 @@ const expandEditingRootChildren = (
           .querySelectorAll(`[${attr}]`)
           .forEach((e) => e.removeAttribute(attr));
       });
-      scopeTemplate.insertAdjacentElement("afterend", element);
+      
+      // Check if template has insert-before attribute
+      const insertPosition = scopeTemplate.hasAttribute(generateConst.attributes.insertBefore) 
+        ? "beforebegin" 
+        : "afterend";
+      scopeTemplate.insertAdjacentElement(insertPosition, element);
     });
 };
 
@@ -120,7 +129,11 @@ const expandTemplateTag = ({
     return pickedData;
   })();
 
-  dataArray.reverse();
+  // Only reverse if inserting after (default behavior)
+  // When inserting before, keep original order
+  if (!scopeTemplate.hasAttribute(generateConst.attributes.insertBefore)) {
+    dataArray.reverse();
+  }
 
   dataArray.forEach((originData) => {
     const editingRoot = queryRootWrapper({

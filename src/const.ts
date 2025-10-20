@@ -27,6 +27,9 @@ const getIncludeAttribute = (o: GenerateOptions) =>
 const getCommentAttribute = (o: GenerateOptions) =>
   `${o.attributePrefix}-comment`;
 
+const getInsertBeforeAttribute = (o: GenerateOptions) =>
+  `${o.attributePrefix}-insert-before`;
+
 export const getGenerateConst = (o: GenerateOptions) => {
   const attributes = {
     scope: getScopeAttribute(o),
@@ -40,6 +43,7 @@ export const getGenerateConst = (o: GenerateOptions) => {
     if: getIfAttribute(o),
     include: getIncludeAttribute(o),
     comment: getCommentAttribute(o),
+    insertBefore: getInsertBeforeAttribute(o),
   };
   return {
     attributes,
