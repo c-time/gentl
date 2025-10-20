@@ -52,5 +52,4 @@ export interface LogEntry {
 export type Logger = (entry: LogEntry) => void;
 
 // includeIo 関数の型定義
-export type IncludeIoFunction = (baseData?: GentlJInputData) => Promise<string>;
-export type IncludeIo = Record<string, IncludeIoFunction>;
+export type IncludeIo = (key: string, baseData?: GentlJInputData) => Promise<string>;

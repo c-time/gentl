@@ -13,8 +13,11 @@ test("gen-include basic", async ({assert})=> {
     {
       html: `<template data-gen-scope="" data-gen-include="testHtml"></template>`,
       data: {},
-      includeIo: {
-        "testHtml": async () => "<div>Hello! world!!</div>"
+      includeIo: async (key: string) => {
+        if (key === 'testHtml') {
+          return "<div>Hello! world!!</div>";
+        }
+        throw new Error(`Unknown key: ${key}`);
       }
     },
     options
@@ -33,8 +36,11 @@ test("gen-include multiple elements", async ({assert})=> {
     {
       html: `<template data-gen-scope="" data-gen-include="testHtml"></template>`,
       data: {},
-      includeIo: {
-        "testHtml": async () => "<div>Hello! world!!</div><div>Hello! second world!!</div>"
+      includeIo: async (key: string) => {
+        if (key === 'testHtml') {
+          return "<div>Hello! world!!</div><div>Hello! second world!!</div>";
+        }
+        throw new Error(`Unknown key: ${key}`);
       }
     },
     options
@@ -54,8 +60,11 @@ test("gen-include multiple elements and text node", async ({assert})=> {
     {
       html: `<template data-gen-scope="" data-gen-include="testHtml"></template>`,
       data: {},
-      includeIo: {
-        "testHtml": async () => "<div>Hello! world!!</div>text node<div>Hello! second world!!</div>"
+      includeIo: async (key: string) => {
+        if (key === 'testHtml') {
+          return "<div>Hello! world!!</div>text node<div>Hello! second world!!</div>";
+        }
+        throw new Error(`Unknown key: ${key}`);
       }
     },
     options
@@ -75,8 +84,11 @@ test("gen-include malformed html", async ({assert})=> {
     {
       html: `<template data-gen-scope="" data-gen-include="testHtml"></template>`,
       data: {},
-      includeIo: {
-        "testHtml": async () => "<div>Hello! world!!</div><p>Hello! second world!!</div>"
+      includeIo: async (key: string) => {
+        if (key === 'testHtml') {
+          return "<div>Hello! world!!</div><p>Hello! second world!!</div>";
+        }
+        throw new Error(`Unknown key: ${key}`);
       }
     },
     options

@@ -5,33 +5,37 @@ import { strict as assert } from "node:assert";
 import { type IncludeIo } from "../src/types.ts";
 
 test("data-gen-include in data-gen-repeat with baseData", async () => {
-  const includeIo: IncludeIo = {
-    'item-template': async (baseData) => {
-      const item = (baseData as any)?.item;
-      if (!item) {
-        return '<div>No item data</div>';
+  const includeIo: IncludeIo = async (key: string, baseData) => {
+    switch (key) {
+      case 'item-template': {
+        const item = (baseData as any)?.item;
+        if (!item) {
+          return '<div>No item data</div>';
+        }
+        
+        return `
+          <div class="item-detail">
+            <h3>${item.name}</h3>
+            <p>${item.description}</p>
+            <span class="price">¥${item.price}</span>
+          </div>
+        `;
       }
-      
-      return `
-        <div class="item-detail">
-          <h3>${item.name}</h3>
-          <p>${item.description}</p>
-          <span class="price">¥${item.price}</span>
-        </div>
-      `;
-    },
-    'category-header': async (baseData) => {
-      const category = (baseData as any)?.category;
-      if (!category) {
-        return '<div>No category data</div>';
+      case 'category-header': {
+        const category = (baseData as any)?.category;
+        if (!category) {
+          return '<div>No category data</div>';
+        }
+        
+        return `
+          <header class="category-header">
+            <h2>${category.name}</h2>
+            <p>${category.description}</p>
+          </header>
+        `;
       }
-      
-      return `
-        <header class="category-header">
-          <h2>${category.name}</h2>
-          <p>${category.description}</p>
-        </header>
-      `;
+      default:
+        throw new Error(`Unknown key: ${key}`);
     }
   };
 
@@ -96,14 +100,15 @@ test("data-gen-include in data-gen-repeat with baseData", async () => {
 });
 
 test("data-gen-include in nested repeat without required data", async () => {
-  const includeIo: IncludeIo = {
-    'item-template': async (baseData) => {
+  const includeIo: IncludeIo = async (key: string, baseData) => {
+    if (key === 'item-template') {
       const item = (baseData as any)?.item;
       if (!item) {
         return '<div class="no-item">No item data available</div>';
       }
       return `<div class="item">${item.name}</div>`;
     }
+    throw new Error(`Unknown key: ${key}`);
   };
 
   const html = `
@@ -133,8 +138,11 @@ test("data-gen-include in nested repeat without required data", async () => {
 });
 
 test("data-gen-include with missing includeIo function", async () => {
-  const includeIo: IncludeIo = {
-    'existing-template': async () => '<div>Existing template</div>'
+  const includeIo: IncludeIo = async (key: string) => {
+    if (key === 'existing-template') {
+      return '<div>Existing template</div>';
+    }
+    throw new Error(`Unknown key: ${key}`);
   };
 
   const html = `
@@ -168,12 +176,14 @@ test("data-gen-include with missing includeIo function", async () => {
 });
 
 test("data-gen-include error handling with baseData", async () => {
-  const includeIo: IncludeIo = {
-    'error-template': async (baseData) => {
-      throw new Error('Template generation failed');
-    },
-    'success-template': async (baseData) => {
-      return `<div>Success: ${(baseData as any)?.item?.name || 'unknown'}</div>`;
+  const includeIo: IncludeIo = async (key: string, baseData) => {
+    switch (key) {
+      case 'error-template':
+        throw new Error('Template generation failed');
+      case 'success-template':
+        return `<div>Success: ${(baseData as any)?.item?.name || 'unknown'}</div>`;
+      default:
+        throw new Error(`Unknown key: ${key}`);
     }
   };
 

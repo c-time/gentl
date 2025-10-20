@@ -99,10 +99,11 @@ test("logger functionality direct test", async ({assert})=> {
 test("includeIo error with logger", async ({assert})=> {
   const testLogger = new TestLogger();
   
-  const includeIo = {
-    'failing': async () => {
+  const includeIo = async (key: string) => {
+    if (key === 'failing') {
       throw new Error('Network timeout');
     }
+    throw new Error(`Unknown key: ${key}`);
   };
 
   await process(

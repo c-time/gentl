@@ -108,14 +108,14 @@ const expandTemplateTag = async ({
   );
 
   if (includeKey) {
-    // includeIoが存在しない、または対象のキーが存在しない場合は何もしない
-    if (!includeIo || !includeIo[includeKey]) {
+    // includeIoが存在しない場合は何もしない
+    if (!includeIo) {
       return;
     }
 
     let htmlContent = "";
     try {
-      htmlContent = await includeIo[includeKey](baseData);
+      htmlContent = await includeIo(includeKey, baseData);
     } catch (error) {
       if (logger) {
         logger({

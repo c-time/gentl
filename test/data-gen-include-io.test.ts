@@ -9,9 +9,12 @@ const options: Partial<GentlJOptions> = createTestOptions({
 });
 
 test("gen-include with includeIo", async ({assert})=> {
-  const includeIo: IncludeIo = {
-    'header': async () => '<header><h1>Dynamic Header</h1></header>',
-    'footer': async () => '<footer><p>Dynamic Footer</p></footer>'
+  const includeIo: IncludeIo = async (key: string) => {
+    switch (key) {
+      case 'header': return '<header><h1>Dynamic Header</h1></header>';
+      case 'footer': return '<footer><p>Dynamic Footer</p></footer>';
+      default: throw new Error(`Unknown key: ${key}`);
+    }
   };
 
   const result = await process(
@@ -32,8 +35,11 @@ test("gen-include with includeIo", async ({assert})=> {
 });
 
 test("gen-include with includeIo missing key", async ({assert})=> {
-  const includeIo: IncludeIo = {
-    'header': async () => '<header><h1>Dynamic Header</h1></header>'
+  const includeIo: IncludeIo = async (key: string) => {
+    if (key === 'header') {
+      return '<header><h1>Dynamic Header</h1></header>';
+    }
+    throw new Error(`Unknown key: ${key}`);
   };
 
   const result = await process(
@@ -53,10 +59,11 @@ test("gen-include with includeIo missing key", async ({assert})=> {
 });
 
 test("gen-include with includeIo error handling", async ({assert})=> {
-  const includeIo: IncludeIo = {
-    'failing': async () => {
+  const includeIo: IncludeIo = async (key: string) => {
+    if (key === 'failing') {
       throw new Error('Failed to load content');
     }
+    throw new Error(`Unknown key: ${key}`);
   };
 
   const result = await process(
@@ -93,9 +100,12 @@ test("gen-include without includeIo", async ({assert})=> {
 });
 
 test("gen-include with includeIo multiple keys", async ({assert})=> {
-  const includeIo: IncludeIo = {
-    'content1': async () => '<div>Content 1</div>',
-    'content2': async () => '<div>Content 2</div>'
+  const includeIo: IncludeIo = async (key: string) => {
+    switch (key) {
+      case 'content1': return '<div>Content 1</div>';
+      case 'content2': return '<div>Content 2</div>';
+      default: throw new Error(`Unknown key: ${key}`);
+    }
   };
 
   const result = await process(
