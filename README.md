@@ -512,7 +512,9 @@ Gentlの全ての機能は`<template data-gen-scope="">`タグ内で動作し、
 
 **用途**: 配列データの各要素に対して要素を繰り返し生成
 
-**基本構文**: `data-gen-repeat`と`data-gen-repeat-name`をペアで使用
+**基本構文**: `data-gen-repeat`と`data-gen-repeat-name`を**必ずペアで使用**
+
+⚠️ **重要**: `data-gen-repeat-name`は必須です。指定されていない場合、繰り返し処理は実行されません。
 
 ```html
 <template data-gen-scope="" data-gen-repeat="articles" data-gen-repeat-name="article">
@@ -588,6 +590,7 @@ Gentlの全ての機能は`<template data-gen-scope="">`タグ内で動作し、
 
 **注意事項**:
 - `data-gen-repeat`は`<template>`タグに設定します
+- **`data-gen-repeat-name`は必須**です（省略すると処理がスキップされます）
 - `data-gen-repeat-name`で指定した変数名でアクセス可能
 - 配列が空の場合、要素は生成されない
 - ネストする場合は内側にも`<template data-gen-scope="">`が必要

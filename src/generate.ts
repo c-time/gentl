@@ -263,7 +263,7 @@ const expandTemplateTag = async ({
     // data-gen-if
     editingRoot.querySelectorAll(generateConst.queries.if).forEach((e) => {
       const ifValue = e.getAttribute(generateConst.attributes.if) || "";
-      if (!pickData(ifValue, baseData, logger)) {
+      if (!pickData(ifValue, data, logger)) {
         e.remove();
       }
     });
