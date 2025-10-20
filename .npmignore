@@ -1,3 +1,7 @@
 /node_modules
 /src
+/test
 tsconfig.json
+esbuild.config.mjs
+gentl.code-workspace
+.github/
