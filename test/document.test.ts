@@ -131,8 +131,10 @@ describe('Document Sample Tests', () => {
       console.log(result.html);
       console.log('=== data-gen-repeat 終了 ===\n');
       
-      // 一応のテスト
+      // 一応のテスト - プレミアムバッジが正しく表示されることを確認
       assert.ok(result.html.includes('<template data-gen-scope="">'));
+      // 二番目の記事（佐藤、isPremium: true）のプレミアムバッジが表示されること
+      assert.ok(result.html.includes('🌟 プレミアム'));
     });
   });
 

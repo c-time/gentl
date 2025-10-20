@@ -556,7 +556,7 @@ Gentlの全ての機能は`<template data-gen-scope="">`タグ内で動作し、
     <h3>記事2</h3>
     <p>二番目の記事</p>
     <small>佐藤</small>
-
+    <span>🌟 プレミアム</span>
   </div>
 <div data-gen-cloned="" class="article-card">
     <h3>記事3</h3>
