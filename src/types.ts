@@ -24,6 +24,11 @@ export interface DOMEnvironment {
   };
 }
 
-export interface DOMEnvironmentConstructor {
-  new (html?: string, options?: any): DOMEnvironment;
+// DOM環境のオプション型（拡張可能）
+export interface DOMEnvironmentOptions {
+  readonly [key: string]: unknown;
+}
+
+export interface DOMEnvironmentConstructor<T extends DOMEnvironmentOptions = DOMEnvironmentOptions> {
+  new (html?: string, options?: T): DOMEnvironment;
 }
