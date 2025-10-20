@@ -10,6 +10,24 @@ import {
   type Logger,
 } from "./types.ts";
 
+const isScopeMatched = (scopeAttribute: string | null, targetScope: string | undefined): boolean => {
+  // targetScopeが未定義または空文字列の場合、すべてのテンプレートを処理
+  if (!targetScope || targetScope.trim() === "") {
+    return true;
+  }
+  
+  // scopeAttributeが未定義またはnullまたは空文字列の場合、マッチしない
+  if (!scopeAttribute || scopeAttribute.trim() === "") {
+    return false;
+  }
+  
+  // scopeAttributeをスペースで分割してスコープリストを取得
+  const scopeList = scopeAttribute.split(/\s+/).filter(s => s.length > 0);
+  
+  // targetScopeがスコープリストに含まれているかチェック
+  return scopeList.includes(targetScope);
+};
+
 type ExpandTemplateTagParams = {
   scopeTemplate: GentlHTMLElement;
   queryRootWrapper: QueryRootWrapper;
@@ -38,7 +56,7 @@ const expandEditingRootChildren = (
       attributes.forEach((a) => element.removeAttribute(a));
       element.setAttribute(
         generateConst.attributes.cloned,
-        generateOptions.scope
+        scopeTemplate.getAttribute(generateConst.attributes.scope) || ""
       );
       entries.forEach(([name, value]) => {
         if (generateConst.attributeNames.has(name || "")) {
@@ -182,7 +200,7 @@ const expandTemplateTag = async ({
 
     // remove data-gen-cloned at scoped template
     editingRoot.querySelectorAll(generateConst.queries.cloned).forEach((e) => {
-      if (e.hasAttribute(generateConst.attributes.scope)) {
+      if (isScopeMatched(e.getAttribute(generateConst.queries.cloned), generateOptions.scope)) {
         return;
       }
       e.remove();
@@ -191,7 +209,7 @@ const expandTemplateTag = async ({
     // children of data-gen-scope
     const scopeElements = editingRoot.querySelectorAll<GentlHTMLElement>(generateConst.queries.scope);
     await Promise.all(
-      Array.from(scopeElements).map(async (e) => {
+      Array.from(scopeElements).filter((e) => isScopeMatched(e.getAttribute(generateConst.attributes.scope), generateOptions.scope)).map(async (e) => {
         await expandTemplateTag({
           scopeTemplate: e,
           queryRootWrapper,
@@ -207,9 +225,6 @@ const expandTemplateTag = async ({
 
     // data-gen-text
     editingRoot.querySelectorAll(generateConst.queries.text).forEach((e) => {
-      if (e.hasAttribute(generateConst.attributes.scope)) {
-        return;
-      }
       e.textContent = pickStringData(
         e.getAttribute(generateConst.attributes.text),
         data,
@@ -219,9 +234,6 @@ const expandTemplateTag = async ({
 
     // data-gen-html
     editingRoot.querySelectorAll(generateConst.queries.html).forEach((e) => {
-      if (e.hasAttribute(generateConst.attributes.scope)) {
-        return;
-      }
       e.innerHTML = pickStringData(
         e.getAttribute(generateConst.attributes.html),
         data,
@@ -231,9 +243,6 @@ const expandTemplateTag = async ({
 
     // data-gen-json
     editingRoot.querySelectorAll(generateConst.queries.json).forEach((e) => {
-      if (e.hasAttribute(generateConst.attributes.scope)) {
-        return;
-      }
       e.innerHTML = JSON.stringify(pickData(
         e.getAttribute(generateConst.attributes.json),
         data,
@@ -243,9 +252,6 @@ const expandTemplateTag = async ({
 
     // data-gen-attrs
     editingRoot.querySelectorAll(generateConst.queries.attrs).forEach((e) => {
-      if (e.hasAttribute(generateConst.attributes.scope)) {
-        return;
-      }
       const attrs = e.getAttribute(generateConst.attributes.attrs) || "";
       attrs.split(",").forEach((attr) => {
         const [key, value] = attr.split(":").map((s) => s.trim());
@@ -311,7 +317,7 @@ export const generate = async ({
 
   // remove data-gen-cloned at root
   root.querySelectorAll(generateConst.queries.cloned).forEach((e) => {
-    if (e.hasAttribute(generateConst.attributes.scope)) {
+    if (!isScopeMatched(e.getAttribute(generateConst.attributes.scope), generateOptions.scope)) {
       return;
     }
     e.remove();

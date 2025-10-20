@@ -13,6 +13,7 @@ export type GentlJInput = {
   html: string;
   data: GentlJInputData;
   includeIo?: Record<string, () => Promise<string>>;
+  scope?: string;
 };
 
 export type GentlJOutput = {
@@ -130,6 +131,9 @@ export const process = async (
     data: input.data,
     includeIo: input.includeIo,
     logger: absOptions.logger,
+    options: {
+      scope: input.scope || "",
+    },
   });
 
   if (absOptions.rootParserType === "childElement") {
