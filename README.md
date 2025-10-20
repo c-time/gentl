@@ -240,8 +240,8 @@ const result = await process({
 ### 🎯 **リスト表示**
 
 ```html
-<template data-gen-scope="">
-  <div data-gen-repeat="products" data-gen-repeat-name="product" class="product-card">
+<template data-gen-scope="" data-gen-repeat="products" data-gen-repeat-name="product">
+  <div class="product-card">
     <img data-gen-attrs="src:product.image,alt:product.name" src="placeholder.jpg">
     <h3 data-gen-text="product.name">商品名</h3>
     <p data-gen-text="product.price">価格</p>
@@ -254,10 +254,9 @@ const result = await process({
 ### 🎯 **ナビゲーション**
 
 ```html
-<template data-gen-scope="">
+<template data-gen-scope="" data-gen-repeat="navItems" data-gen-repeat-name="item">
   <nav>
-    <a data-gen-repeat="navItems" data-gen-repeat-name="item"
-       data-gen-attrs="href:item.url,class:item.active"
+    <a data-gen-attrs="href:item.url,class:item.active"
        data-gen-text="item.label">
       リンク
     </a>
@@ -285,9 +284,9 @@ const result = await process({
 ### 🎯 **フォーム生成**
 
 ```html
-<template data-gen-scope="">
+<template data-gen-scope="" data-gen-repeat="formFields" data-gen-repeat-name="field">
   <form>
-    <div data-gen-repeat="formFields" data-gen-repeat-name="field">
+    <div>
       <label data-gen-text="field.label">ラベル</label>
       <input data-gen-attrs="type:field.type,name:field.name,placeholder:field.placeholder,required:field.required">
       <span data-gen-if="field.error" class="error" data-gen-text="field.error">エラー</span>
@@ -303,15 +302,19 @@ const result = await process({
   <table>
     <thead>
       <tr>
-        <th data-gen-repeat="tableHeaders" data-gen-repeat-name="header" 
-            data-gen-text="header">ヘッダー</th>
+        <template data-gen-scope="" data-gen-repeat="tableHeaders" data-gen-repeat-name="header">
+          <th data-gen-text="header">ヘッダー</th>
+        </template>
       </tr>
     </thead>
     <tbody>
-      <tr data-gen-repeat="tableRows" data-gen-repeat-name="row">
-        <td data-gen-repeat="row.cells" data-gen-repeat-name="cell" 
-            data-gen-text="cell">セル</td>
-      </tr>
+      <template data-gen-scope="" data-gen-repeat="tableRows" data-gen-repeat-name="row">
+        <tr>
+          <template data-gen-scope="" data-gen-repeat="row.cells" data-gen-repeat-name="cell">
+            <td data-gen-text="cell">セル</td>
+          </template>
+        </tr>
+      </template>
     </tbody>
   </table>
 </template>
@@ -405,7 +408,15 @@ Gentlの全ての機能は`<template data-gen-scope="">`タグ内で動作し、
 </template>
 <h1 data-gen-cloned="">新着記事一覧</h1>
 <p data-gen-cloned="">田中太郎</p>
-<span data-gen-cloned="">5</span>個
+<span data-gen-cloned="">5</span>
+```
+
+**注意**: `data-gen-text`は要素内のテキストコンテンツを完全に置き換えるため、「個」のような周辺テキストは削除されます。周辺テキストを保持したい場合は、別の要素に分けて記述してください：
+
+```html
+<template data-gen-scope="">
+  <span data-gen-text="count">0</span><span>個</span>
+</template>
 ```
 
 **特徴**:
@@ -503,14 +514,14 @@ Gentlの全ての機能は`<template data-gen-scope="">`タグ内で動作し、
 **基本構文**: `data-gen-repeat`と`data-gen-repeat-name`をペアで使用
 
 ```html
-<template data-gen-scope="">
-  <div data-gen-repeat="articles" data-gen-repeat-name="article" class="article-card">
+<template data-gen-scope="" data-gen-repeat="articles" data-gen-repeat-name="article">
+  <div class="article-card">
     <h3 data-gen-text="article.title">タイトル</h3>
     <p data-gen-text="article.excerpt">要約</p>
     <small data-gen-text="article.author">著者</small>
     <span data-gen-if="article.isPremium">🌟 プレミアム</span>
   </div>
-</template>
+</template>`
 ```
 
 データ:
@@ -526,7 +537,7 @@ Gentlの全ての機能は`<template data-gen-scope="">`タグ内で動作し、
 
 結果:
 ```html
-<template data-gen-scope=""><!-- 元のテンプレート --></template>
+<template data-gen-scope="" data-gen-repeat="articles" data-gen-repeat-name="article"><!-- 元のテンプレート --></template>
 <div data-gen-cloned="" class="article-card">
   <h3 data-gen-cloned="">記事1</h3>
   <p data-gen-cloned="">最初の記事です</p>
@@ -545,13 +556,15 @@ Gentlの全ての機能は`<template data-gen-scope="">`タグ内で動作し、
 </div>
 ```
 
+**重要**: `data-gen-repeat`は`<template>`タグに設定します。`data-gen-repeat-name`を使用することで、繰り返しの各要素に `article` という変数名でアクセスできます。
+
 **ネストした繰り返し**:
 ```html
-<template data-gen-scope="">
-  <div data-gen-repeat="categories" data-gen-repeat-name="category">
+<template data-gen-scope="" data-gen-repeat="categories" data-gen-repeat-name="category">
+  <div>
     <h2 data-gen-text="category.name">カテゴリ名</h2>
-    <template data-gen-scope="">
-      <article data-gen-repeat="category.posts" data-gen-repeat-name="post">
+    <template data-gen-scope="" data-gen-repeat="category.posts" data-gen-repeat-name="post">
+      <article>
         <h3 data-gen-text="post.title">記事タイトル</h3>
       </article>
     </template>
@@ -560,6 +573,7 @@ Gentlの全ての機能は`<template data-gen-scope="">`タグ内で動作し、
 ```
 
 **注意事項**:
+- `data-gen-repeat`は`<template>`タグに設定します
 - `data-gen-repeat-name`で指定した変数名でアクセス可能
 - 配列が空の場合、要素は生成されない
 - ネストする場合は内側にも`<template data-gen-scope="">`が必要
@@ -667,15 +681,21 @@ const result = await process({
 
 結果:
 ```html
-<template data-gen-scope=""><!-- 元のテンプレート --></template>
+<template data-gen-scope="">
+  <div data-gen-text="title">タイトル</div>
+  <div data-gen-comment="">この要素は生成時に削除される</div>
+  <p data-gen-text="content">コンテンツ</p>
+</template>
 <div data-gen-cloned="">実際のタイトル</div>
-<!-- data-gen-comment の要素は削除される -->
+<!-- data-gen-comment の要素は生成されない -->
 <p data-gen-cloned="">実際のコンテンツ</p>
 ```
 
 **用途例**:
 - 開発時のメモやプレースホルダー
 - 条件に関係なく常に非表示にしたい要素
+
+**注意**: `data-gen-comment`が設定された要素は、生成されたHTMLには含まれませんが、テンプレート内には残ります。
 
 ### data-gen-insert-before（挿入位置制御）
 
@@ -727,7 +747,9 @@ const html = `
 <template data-gen-scope="">
   <div data-gen-text="title">Default Title</div>
   <ul>
-    <li data-gen-repeat="items" data-gen-text="item">Default Item</li>
+    <template data-gen-scope="" data-gen-repeat="items" data-gen-repeat-name="item">
+      <li data-gen-text="item">Default Item</li>
+    </template>
   </ul>
 </template>
 `;
@@ -748,7 +770,9 @@ console.log(result.html);
 <template data-gen-scope="">
   <div data-gen-text="title">Default Title</div>
   <ul>
-    <li data-gen-repeat="items" data-gen-text="item">Default Item</li>
+    <template data-gen-scope="" data-gen-repeat="items" data-gen-repeat-name="item">
+      <li data-gen-text="item">Default Item</li>
+    </template>
   </ul>
 </template>
 <div data-gen-cloned="">Welcome to Gentl</div>
