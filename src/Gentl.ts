@@ -11,6 +11,7 @@ import {
 export type GentlJInput = {
   html: string;
   data: GentlJInputData;
+  includeIo?: Record<string, () => Promise<string>>;
 };
 
 export type GentlJOutput = {
@@ -81,9 +82,14 @@ const childElementsToString = (dom: GentlNode[]): string => {
       if (node.nodeType === 1) {
         return (node as Element).outerHTML;
       }
-
-      return node.toString();
+      // テキストノードの場合、空白のみの場合は除外
+      if (node.nodeType === 3) {
+        const textContent = node.textContent?.trim() || "";
+        return textContent ? textContent : "";
+      }
+      return "";
     })
+    .filter((content) => content !== "")
     .join("\n");
 };
 
@@ -91,10 +97,10 @@ const documentToString = (dom: GentlNode): string => {
   return (dom as Document)?.documentElement?.outerHTML || "";
 };
 
-export const process = (
+export const process = async (
   input: GentlJInput,
   options?: Partial<GentlJOptions>
-): Promise<GentlJOutput> | GentlJOutput => {
+): Promise<GentlJOutput> => {
   const absOptions: GentlJOptions = {
     ...defaultOptions,
     ...options,
@@ -116,10 +122,11 @@ export const process = (
     throw new Error("couldn't analyze dom");
   }
 
-  const generatedDom = generate({
+  const generatedDom = await generate({
     root: dom.root,
     queryRootWrapper: dom.queryRootWrapper,
     data: input.data,
+    includeIo: input.includeIo,
   });
 
   if (absOptions.rootParserType === "childElement") {

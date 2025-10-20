@@ -142,6 +142,7 @@ console.log(result.html);
 - `input: GentlJInput`
   - `html: string` - テンプレートHTML
   - `data: object` - テンプレートデータ
+  - `includeIo?: Record<string, () => Promise<string>>` - `data-gen-include`用のI/O関数群
 
 - `options?: Partial<GentlJOptions>`
   - `rootParserType?: 'htmlDocument' | 'xmlDocument' | 'childElement'` - パーサータイプ（デフォルト: 'htmlDocument'）
@@ -230,10 +231,34 @@ Gentlの全ての機能は`<template data-gen-scope="">`タグ内で動作し、
 
 ### 共通ソースの取り込み（data-gen-include）
 
+#### 💽 データからの取得
 ```html
 <template data-gen-scope="" data-gen-include="headerHtml"></template>
 ```
 データ: `{ headerHtml: "<header><h1>サイトタイトル</h1></header>" }`
+
+#### 🔌 外部I/Oからの取得（includeIo）
+```javascript
+const includeIo = {
+  'header': async () => {
+    // ファイルやAPIから動的に取得
+    const response = await fetch('/api/header');
+    return await response.text();
+  },
+  'footer': async () => {
+    // ファイルシステムから読み込み
+    return await fs.readFile('./templates/footer.html', 'utf-8');
+  }
+};
+
+const result = await process({
+  html: '<template data-gen-scope="" data-gen-include="header"></template>',
+  data: {},
+  includeIo
+});
+```
+
+`includeIo`が存在しない場合は、従来通り`data`からフォールバックします。
 
 ## 実行例
 

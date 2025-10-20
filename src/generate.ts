@@ -13,6 +13,7 @@ type ExpandTemplateTagParams = {
   scopeTemplate: GentlHTMLElement;
   queryRootWrapper: QueryRootWrapper;
   data: GentlJInputData;
+  includeIo?: Record<string, () => Promise<string>>;
   generateOptions: GenerateOptions;
   generateConst: GenerateConst;
 };
@@ -58,13 +59,14 @@ const expandEditingRootChildren = (
     });
 };
 
-const expandTemplateTag = ({
+const expandTemplateTag = async ({
   scopeTemplate,
   queryRootWrapper,
   data: baseData,
+  includeIo,
   generateOptions,
   generateConst,
-}: ExpandTemplateTagParams): void => {
+}: ExpandTemplateTagParams): Promise<void> => {
   // data-gen-if at template tag
   if (scopeTemplate.hasAttribute(generateConst.attributes.if)) {
     const ifValue = scopeTemplate.getAttribute(generateConst.attributes.if);
@@ -79,14 +81,29 @@ const expandTemplateTag = ({
   }
 
   // data-gen-include
-  const includeValue = scopeTemplate.getAttribute(
+  const includeKey = scopeTemplate.getAttribute(
     generateConst.attributes.include
   );
 
-  if (includeValue) {
-    const pickedData = pickData(includeValue, baseData);
+  if (includeKey) {
+    let htmlContent = "";
+    
+    if (includeIo && includeIo[includeKey]) {
+      // includeIoから取得
+      try {
+        htmlContent = await includeIo[includeKey]();
+      } catch (error) {
+        console.error(`Failed to load include content for key "${includeKey}":`, error);
+        return;
+      }
+    } else {
+      // フォールバック: 従来のpickDataから取得
+      const pickedData = pickData(includeKey, baseData);
+      htmlContent = pickedData?.toString() || "";
+    }
+
     const editingRoot = queryRootWrapper({
-      html: pickedData?.toString() || "",
+      html: htmlContent,
       rootType: "childElement",
     });
 
@@ -135,7 +152,8 @@ const expandTemplateTag = ({
     dataArray.reverse();
   }
 
-  dataArray.forEach((originData) => {
+  await Promise.all(
+    dataArray.map(async (originData) => {
     const editingRoot = queryRootWrapper({
       html: scopeTemplate.innerHTML,
       rootType: "childElement",
@@ -158,18 +176,20 @@ const expandTemplateTag = ({
     });
 
     // children of data-gen-scope
-    editingRoot
-      .querySelectorAll<GentlHTMLElement>(generateConst.queries.scope)
-      .forEach((e) => {
-        expandTemplateTag({
+    const scopeElements = editingRoot.querySelectorAll<GentlHTMLElement>(generateConst.queries.scope);
+    await Promise.all(
+      Array.from(scopeElements).map(async (e) => {
+        await expandTemplateTag({
           scopeTemplate: e,
           queryRootWrapper,
           data,
+          includeIo,
           generateOptions,
           generateConst,
         });
         e.remove();
-      });
+      })
+    );
 
     // data-gen-text
     editingRoot.querySelectorAll(generateConst.queries.text).forEach((e) => {
@@ -238,7 +258,8 @@ const expandTemplateTag = ({
       queryRootWrapper,
       scopeTemplate,
     });
-  });
+    })
+  );
 };
 
 export const getDefaultGenerateOptions = (): GenerateOptions => ({
@@ -251,15 +272,17 @@ export type GenerateParams = {
   root: QueryRoot;
   queryRootWrapper: QueryRootWrapper;
   data: GentlJInputData;
+  includeIo?: Record<string, () => Promise<string>>;
   options?: Partial<GenerateOptions>;
 };
 
-export const generate = ({
+export const generate = async ({
   root,
   queryRootWrapper,
   data,
+  includeIo,
   options,
-}: GenerateParams): QueryRoot => {
+}: GenerateParams): Promise<QueryRoot> => {
   const generateOptions: GenerateOptions = {
     ...getDefaultGenerateOptions(),
     ...options,
@@ -275,17 +298,19 @@ export const generate = ({
     e.remove();
   });
 
-  root
-    .querySelectorAll<GentlHTMLElement>(generateConst.queries.scope)
-    .forEach((e) =>
-      expandTemplateTag({
+  const rootScopeElements = root.querySelectorAll<GentlHTMLElement>(generateConst.queries.scope);
+  await Promise.all(
+    Array.from(rootScopeElements).map(async (e) =>
+      await expandTemplateTag({
         scopeTemplate: e,
         queryRootWrapper,
         data,
+        includeIo,
         generateOptions,
         generateConst,
       })
-    );
+    )
+  );
 
   return root;
 };
