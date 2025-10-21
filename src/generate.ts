@@ -108,8 +108,23 @@ const expandTemplateTag = async ({
   );
 
   if (includeKey) {
-    // includeIoが存在しない場合は何もしない
+    // includeIoが存在しない場合はエラーとして取り扱う
     if (!includeIo) {
+      const error = new Error(`includeIo function is required when using data-gen-include attribute with key "${includeKey}"`);
+      if (logger) {
+        logger({
+          level: 'error',
+          message: 'includeIo function is required',
+          context: {
+            attribute: 'data-gen-include',
+            formula: includeKey,
+            error: error
+          },
+          timestamp: new Date()
+        });
+      } else {
+        console.error(`[Gentl] includeIo function is required for key "${includeKey}":`, error);
+      }
       return;
     }
 
