@@ -1,6 +1,6 @@
 {
   "name": "@c-time/gentl",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "description": "WEB制作専用HTMLジェネレータ - シンプルなテンプレートベースのHTML生成ライブラリ",
   "main": "dist/Gentl.node.js",
   "module": "dist/Gentl.browser.js",
