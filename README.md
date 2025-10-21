@@ -401,7 +401,7 @@ const sidebarUpdate = await process({
 - `input: GentlJInput`
   - `html: string` - テンプレートHTML
   - `data: object` - テンプレートデータ
-  - `includeIo?: Record<string, () => Promise<string>>` - `data-gen-include`用のI/O関数群
+  - `includeIo?: (key: string, baseData?: object) => Promise<string>` - `data-gen-include`用のI/O関数
   - `scope?: string` - 処理対象のスコープを指定（部分的なテンプレート処理が可能）
 
 - `options?: Partial<GentlJOptions>`
@@ -735,28 +735,95 @@ const fullResult = await process({
 
 ### 共通ソースの取り込み（data-gen-include）
 
-####  外部I/Oからの取得（includeIo）
+**用途**: 外部のHTMLコンテンツを動的に読み込んでテンプレートに挿入
+
+```html
+<template data-gen-scope="" data-gen-include="header"></template>
+<template data-gen-scope="" data-gen-include="footer"></template>
+```
+
+#### includeIo関数の定義
+
+`includeIo`は**単一の関数**として定義し、キーに応じて適切なコンテンツを返します：
+
 ```javascript
-const includeIo = {
-  'header': async () => {
-    // ファイルやAPIから動的に取得
-    const response = await fetch('/api/header');
-    return await response.text();
-  },
-  'footer': async () => {
-    // ファイルシステムから読み込み
-    return await fs.readFile('./templates/footer.html', 'utf-8');
+const includeIo = async (key, baseData) => {
+  switch (key) {
+    case 'header':
+      // ファイルやAPIから動的に取得
+      const response = await fetch('/api/header');
+      return await response.text();
+      
+    case 'footer':
+      // ファイルシステムから読み込み
+      return await fs.readFile('./templates/footer.html', 'utf-8');
+      
+    case 'navigation':
+      // baseDataを使用した動的生成
+      return `<nav><a href="/">${baseData.siteName}</a></nav>`;
+      
+    default:
+      throw new Error(`Unknown key: ${key}`);
   }
 };
 
 const result = await process({
   html: '<template data-gen-scope="" data-gen-include="header"></template>',
-  data: {},
+  data: { siteName: "My Site" },
   includeIo
 });
 ```
 
-`includeIo`が存在しない、または指定されたキーが存在しない場合は、何も生成されません（テンプレートのみ残ります）。
+#### baseDataの活用
+
+`includeIo`関数の第2引数として、現在のテンプレートデータ（`baseData`）が渡されます：
+
+```javascript
+const includeIo = async (key, baseData) => {
+  if (key === 'userProfile') {
+    // baseDataを使用してユーザー固有のコンテンツを生成
+    return `
+      <div class="profile">
+        <h3>Hello, ${baseData.user.name}!</h3>
+        <p>Role: ${baseData.user.role}</p>
+      </div>
+    `;
+  }
+  // 他のキーの処理...
+};
+```
+
+#### data-gen-repeatとの連携
+
+`data-gen-include`は`data-gen-repeat`内でも使用でき、各繰り返し要素のデータが`baseData`として渡されます：
+
+```html
+<template data-gen-scope="" data-gen-repeat="articles" data-gen-repeat-name="article">
+  <div class="article">
+    <h2 data-gen-text="article.title">タイトル</h2>
+    <!-- article のデータが baseData として includeIo に渡される -->
+    <template data-gen-scope="" data-gen-include="articleFooter"></template>
+  </div>
+</template>
+```
+
+#### エラーハンドリング
+
+- **`includeIo`関数が未定義**: エラーログを出力し、該当要素はスキップされます
+- **指定されたキーが存在しない**: `includeIo`関数内でエラーを投げることで適切にハンドリング
+- **読み込みエラー**: 例外が発生した場合、ログに記録されテンプレートのみ残ります
+
+```javascript
+const includeIo = async (key, baseData) => {
+  try {
+    // ファイル読み込みやAPI取得処理
+    return await loadTemplate(key);
+  } catch (error) {
+    console.error(`Failed to load template: ${key}`, error);
+    throw error; // エラーを再投げしてGentlにハンドリングを委ねる
+  }
+};
+```
 
 ### data-gen-json（JSON生成）
 
