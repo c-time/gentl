@@ -5,6 +5,7 @@ import { NodeModulesPolyfillPlugin } from "@esbuild-plugins/node-modules-polyfil
 await esbuild.build({
   entryPoints: ['src/index.ts'],
   bundle: true,
+  format: 'esm',
   outfile: 'dist/index.browser.js',
   platform: 'browser',
   plugins: [
@@ -19,7 +20,17 @@ await esbuild.build({
 await esbuild.build({
   entryPoints: ['src/index.ts'],
   bundle: true,
+  format: 'esm',
   outfile: 'dist/index.js',
+  platform: 'node',
+  plugins: [],
+}).catch(() => process.exit(1));
+
+await esbuild.build({
+  entryPoints: ['src/index.ts'],
+  bundle: true,
+  format: 'cjs',
+  outfile: 'dist/index.cjs',
   platform: 'node',
   plugins: [],
 }).catch(() => process.exit(1));
