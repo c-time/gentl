@@ -1,6 +1,6 @@
 {
   "name": "@c-time/gentl",
-  "version": "1.2.3",
+  "version": "1.2.4",
   "description": "WEB制作専用HTMLジェネレータ - シンプルなテンプレートベースのHTML生成ライブラリ",
   "files": [
     "dist",
