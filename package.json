@@ -1,7 +1,11 @@
 {
   "name": "@c-time/gentl",
-  "version": "1.2.1",
+  "version": "1.2.3",
   "description": "WEB制作専用HTMLジェネレータ - シンプルなテンプレートベースのHTML生成ライブラリ",
+  "files": [
+    "dist",
+    "README.md"
+  ],
   "main": "dist/index.cjs",
   "module": "dist/Gentl.browser.js",
   "types": "dist/index.d.ts",
@@ -31,8 +35,7 @@
     "build:node.backup": "esbuild src/Gentl.ts --bundle --outfile=dist/Gentl.node.js --platform=node",
     "build:esbuild": "node esbuild.config.mjs",
     "build:browser.backup": "esbuild src/Gentl.ts --bundle --outfile=dist/Gentl.browser.js --platform=browser",
-    "test": "node --experimental-strip-types --test test/**/*.test.ts",
-    "publish": "npm publish --access public"
+    "test": "node --experimental-strip-types --test test/**/*.test.ts"
   },
   "browser": {
     "fs": false,
