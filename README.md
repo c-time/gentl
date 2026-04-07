@@ -406,7 +406,7 @@ const sidebarUpdate = await process({
 
 - `options?: Partial<GentlJOptions>`
   - `rootParserType?: 'htmlDocument' | 'xmlDocument' | 'childElement'` - パーサータイプ（デフォルト: 'htmlDocument'）
-    - `'htmlDocument'`: 完全なHTML文書として出力（`<html><head></head><body></body></html>`が自動付与）
+    - `'htmlDocument'`: 完全なHTML文書として出力（`&lt;html&gt;&lt;head&gt;&lt;/head&gt;&lt;body&gt;&lt;/body&gt;&lt;/html&gt;`が自動付与）
     - `'childElement'`: 生成された要素のみを出力
   - `deleteTemplateTag?: boolean` - テンプレートタグを削除するか（デフォルト: false）
   - `deleteDataAttributes?: boolean` - データ属性を削除するか（デフォルト: false）
@@ -548,7 +548,7 @@ const fullResult = await process({
 
 **注意**: 
 - `data-gen-text`は要素内のテキストコンテンツを完全に置き換えるため、「個」のような周辺テキストは削除されます
-- HTMLDocument形式で出力されるため、`<html>`、`<head>`、`<body>`タグが自動的に追加されます
+- HTMLDocument形式で出力されるため、`&lt;html&gt;`、`&lt;head&gt;`、`&lt;body&gt;`タグが自動的に追加されます
 
 周辺テキストを保持したい場合は、別の要素に分けて記述してください：
 
@@ -790,6 +790,48 @@ const includeIo = async (key, baseData) => {
     `;
   }
   // 他のキーの処理...
+};
+```
+
+#### includeコンテンツ内でのディレクティブ使用
+
+`includeIo`が返すHTMLの中にgentlディレクティブ（`data-gen-text`、`data-gen-html`、`data-gen-scope`など）を含めることができます。includeされたコンテンツは再帰的に処理されます：
+
+```javascript
+const includeIo = async (key, baseData) => {
+  if (key === 'userProfile') {
+    // gentlディレクティブを含むHTMLを返す
+    return `
+      <div class="profile">
+        <h3 data-gen-text="user.name">名前</h3>
+        <p data-gen-text="user.role">役割</p>
+      </div>
+    `;
+  }
+};
+
+const result = await process({
+  html: '<template data-gen-scope="" data-gen-include="userProfile"></template>',
+  data: { user: { name: "田中太郎", role: "管理者" } },
+  includeIo
+});
+// → <div class="profile"><h3>田中太郎</h3><p>管理者</p></div>
+```
+
+ネストした`data-gen-scope`や`data-gen-repeat`も使用できます：
+
+```javascript
+const includeIo = async (key, baseData) => {
+  if (key === 'itemList') {
+    return `
+      <div>
+        <h2 data-gen-text="title">タイトル</h2>
+        <template data-gen-scope="" data-gen-repeat="items" data-gen-repeat-name="item">
+          <span data-gen-text="item.name">名前</span>
+        </template>
+      </div>
+    `;
+  }
 };
 ```
 

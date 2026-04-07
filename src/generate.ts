@@ -154,6 +154,74 @@ const expandTemplateTag = async ({
       rootType: "childElement",
     });
 
+    // Recursively process nested data-gen-scope templates in included content
+    const scopeElements = editingRoot.querySelectorAll<GentlHTMLElement>(generateConst.queries.scope);
+    await Promise.all(
+      Array.from(scopeElements).filter((e) => isScopeMatched(e.getAttribute(generateConst.attributes.scope), generateOptions.scope)).map(async (e) => {
+        await expandTemplateTag({
+          scopeTemplate: e,
+          queryRootWrapper,
+          data: baseData,
+          includeIo,
+          logger,
+          generateOptions,
+          generateConst,
+        });
+        e.remove();
+      })
+    );
+
+    // data-gen-text
+    editingRoot.querySelectorAll(generateConst.queries.text).forEach((e) => {
+      e.textContent = pickStringData(
+        e.getAttribute(generateConst.attributes.text),
+        baseData,
+        logger
+      );
+    });
+
+    // data-gen-html
+    editingRoot.querySelectorAll(generateConst.queries.html).forEach((e) => {
+      e.innerHTML = pickStringData(
+        e.getAttribute(generateConst.attributes.html),
+        baseData,
+        logger
+      );
+    });
+
+    // data-gen-json
+    editingRoot.querySelectorAll(generateConst.queries.json).forEach((e) => {
+      e.innerHTML = JSON.stringify(pickData(
+        e.getAttribute(generateConst.attributes.json),
+        baseData,
+        logger
+      ));
+    });
+
+    // data-gen-attrs
+    editingRoot.querySelectorAll(generateConst.queries.attrs).forEach((e) => {
+      const attrs = e.getAttribute(generateConst.attributes.attrs) || "";
+      attrs.split(",").forEach((attr) => {
+        const [key, value] = attr.split(":").map((s) => s.trim());
+        if (!key) return;
+
+        const resolvedValue = pickData(value, baseData, logger);
+        if (resolvedValue === undefined || resolvedValue === null) {
+          e.removeAttribute(key);
+        } else {
+          e.setAttribute(key, resolvedValue);
+        }
+      });
+    });
+
+    // data-gen-if
+    editingRoot.querySelectorAll(generateConst.queries.if).forEach((e) => {
+      const ifValue = e.getAttribute(generateConst.attributes.if) || "";
+      if (!pickData(ifValue, baseData, logger)) {
+        e.remove();
+      }
+    });
+
     expandEditingRootChildren(editingRoot, {
       data: baseData,
       generateConst,
