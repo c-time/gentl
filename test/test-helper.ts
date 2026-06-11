@@ -1,4 +1,5 @@
 import { JSDOM } from "jsdom";
+import { Window } from "happy-dom";
 import { type GentlJOptions, type Logger, type LogEntry, type LogLevel } from "../src/index.ts";
 
 /**
@@ -46,10 +47,29 @@ export class BrowserDOMEnvironment {
     if (typeof window === "undefined" || typeof DOMParser === "undefined") {
       throw new Error("Browser environment required - window or DOMParser is not available");
     }
-    
+
     this.window = {
       DOMParser: DOMParser,
       document: window.document,
+    };
+  }
+}
+
+/**
+ * テスト用のHappy DOM環境クラス
+ * happy-domの new Window() をDOMEnvironment形状に合わせてラップする
+ */
+export class HappyDOMEnvironment {
+  public window: {
+    DOMParser: new () => DOMParser;
+    document: Document;
+  };
+
+  constructor() {
+    const w = new Window();
+    this.window = {
+      DOMParser: w.DOMParser as unknown as new () => DOMParser,
+      document: w.document as unknown as Document,
     };
   }
 }

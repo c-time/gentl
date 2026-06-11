@@ -97,8 +97,25 @@ const childElementsToString = (dom: GentlNode[]): string => {
     .join("\n");
 };
 
+// DocumentType ノードを XMLSerializer 相当のフォーマットで直列化する
+const serializeDoctype = (doctype: DocumentType): string => {
+  let s = `<!DOCTYPE ${doctype.name}`;
+  if (doctype.publicId) {
+    s += ` PUBLIC "${doctype.publicId}"`;
+  } else if (doctype.systemId) {
+    s += " SYSTEM";
+  }
+  if (doctype.systemId) {
+    s += ` "${doctype.systemId}"`;
+  }
+  return s + ">";
+};
+
 const documentToString = (dom: GentlNode): string => {
-  return (dom as Document)?.documentElement?.outerHTML || "";
+  const doc = dom as Document;
+  const html = doc?.documentElement?.outerHTML || "";
+  const doctype = doc?.doctype;
+  return doctype ? `${serializeDoctype(doctype)}\n${html}` : html;
 };
 
 export const process = async (
