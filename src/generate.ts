@@ -258,7 +258,8 @@ const expandTemplateTag = async ({
       );
     }
 
-    return pickedData;
+    // 入力配列の参照を返すと後続の reverse() が呼び出し側 data を破壊するためコピーを返す (issue #2)
+    return [...pickedData];
   })();
 
   // Only reverse if inserting after (default behavior)
