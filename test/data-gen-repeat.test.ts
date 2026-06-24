@@ -84,6 +84,33 @@ test("refer object property", async ({assert})=> {
 //       );
 //     });
 
+test("同一データを再処理しても展開順が安定し、入力 data を破壊しない (issue #2)", async ({assert})=> {
+  const data = { names: ["Name1", "Name2", "Name3"] };
+  const html =
+    `<template data-gen-scope="" data-gen-repeat="names" data-gen-repeat-name="name">` +
+    `<div data-gen-text="name">Test</div></template>`;
+
+  const first = await process({ html, data }, options);
+
+  // (1) 副作用なし: 入力 data.names が反転していないこと
+  assert.deepEqual(data.names, ["Name1", "Name2", "Name3"]);
+
+  // (2) 冪等性: 同じ data を再処理しても 1 回目と同一出力であること
+  const second = await process({ html, data }, options);
+  assert.equal(await formatHtml(second.html), await formatHtml(first.html));
+
+  // (3) 出力が配列順（Name1→Name2→Name3）であること
+  assert.equal(
+    await formatHtml(first.html),
+    await formatHtml(
+      `<template data-gen-scope="" data-gen-repeat="names" data-gen-repeat-name="name"><div data-gen-text="name">Test</div></template>\n` +
+        `<div data-gen-cloned="">Name1</div>\n` +
+        `<div data-gen-cloned="">Name2</div>\n` +
+        `<div data-gen-cloned="">Name3</div>`
+    )
+  );
+});
+
 test("nested repeat", async ({assert})=> {
   const result = await process(
     {
