@@ -49,7 +49,16 @@ const expandEditingRootChildren = (
   if (!scopeTemplate.hasAttribute(generateConst.attributes.insertBefore)) {
     children.reverse();
   }
-  
+
+  // テンプレート行のインデントを検出（クローン間に「改行＋インデント」を挿入するため）。
+  // insert-before 時はループ中に previousSibling が変化するので、必ずループ前に確定させる。
+  const prev = scopeTemplate.previousSibling;
+  const indent =
+    prev && prev.nodeType === 3
+      ? (prev.textContent || "").match(/[ \t]*$/)?.[0] || ""
+      : "";
+  const separator = "\n" + indent;
+
   children.forEach((e) => {
       const element = e as GentlElement;
       const attributes = element.getAttributeNames();
@@ -77,6 +86,8 @@ const expandEditingRootChildren = (
         ? "beforebegin" 
         : "afterend";
       scopeTemplate.insertAdjacentElement(insertPosition, element);
+      // </li><li> のような改行なし連結を防ぐため、クローン直前に改行＋インデントを挿入する
+      element.insertAdjacentText("beforebegin", separator);
     });
 };
 
