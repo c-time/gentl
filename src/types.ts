@@ -22,6 +22,11 @@ export interface DOMEnvironment {
     DOMParser: new () => DOMParser;
     document: Document;
   };
+  // 任意の破棄フック（後方互換）。process() は env を 1 回だけ生成して使い回し、
+  // 完了時にこれを呼んで DOM 環境（happy-dom の Window 等）を解放できる。
+  // happy-dom の window.happyDOM.close() 等の実 cleanup は非同期なので Promise も許容する。
+  dispose?(): void | Promise<void>;
+  [Symbol.asyncDispose]?(): Promise<void>;
 }
 
 // DOM環境のオプション型（拡張可能）
