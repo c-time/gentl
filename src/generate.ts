@@ -11,6 +11,17 @@ import {
   type IncludeIo,
 } from "./types.ts";
 
+// data-gen-repeat のクローン直前に挿入した「改行＋インデント」テキストノードは
+// クローン要素自身ではないため、再 bake 時のクローン除去だけでは残り、空白行が毎パス増殖する。
+// クローンを除去する際は直前の空白のみテキストノードも併せて除去し、再 bake の冪等性を保つ。
+const removeClonedElement = (e: GentlElement): void => {
+  const prev = e.previousSibling;
+  if (prev && prev.nodeType === 3 && (prev.textContent || "").trim() === "") {
+    prev.remove();
+  }
+  e.remove();
+};
+
 const isScopeMatched = (scopeAttribute: string | null, targetScope: string | undefined): boolean => {
   // targetScopeが未定義または空文字列の場合、すべてのテンプレートを処理
   if (!targetScope || targetScope.trim() === "") {
@@ -416,7 +427,7 @@ export const generate = async ({
     if (!isScopeMatched(e.getAttribute(generateConst.attributes.scope), generateOptions.scope)) {
       return;
     }
-    e.remove();
+    removeClonedElement(e as GentlElement);
   });
 
   const rootScopeElements = root.querySelectorAll<GentlHTMLElement>(generateConst.queries.scope);
