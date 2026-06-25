@@ -149,25 +149,27 @@ test("nested repeat", async ({assert})=> {
 </template>
 <div data-gen-cloned="">
   <div>Name1</div>
-    <div>
-      <div>Book</div>
-    </div>
-    <div>
-      <div>Movie</div>
-    </div>
-    <div>
-      <div>Music</div>
-    </div>
+
+  <div>
+    <div>Book</div>
   </div>
-  <div data-gen-cloned="">
-    <div>Name2</div>
-    <div>
-      <div>Anime</div>
-    </div>
-    <div>
-      <div>Sports</div>
-    </div>
-  </div>`
+  <div>
+    <div>Movie</div>
+  </div>
+  <div>
+    <div>Music</div>
+  </div>
+</div>
+<div data-gen-cloned="">
+  <div>Name2</div>
+
+  <div>
+    <div>Anime</div>
+  </div>
+  <div>
+    <div>Sports</div>
+  </div>
+</div>`
     )
   );
 });
@@ -215,31 +217,33 @@ test("nested repeat and multiple elements", async ({assert})=> {
 <div data-gen-cloned="">
   <p>title</p>
   <div>Name1</div>
-    <div>
-      <div>Book</div>
-      <p>message</p>
-    </div>
-    <div>
-      <div>Movie</div>
-      <p>message</p>
-    </div>
-    <div>
-      <div>Music</div>
-      <p>message</p>
-    </div>
+
+  <div>
+    <div>Book</div>
+    <p>message</p>
   </div>
-  <div data-gen-cloned="">
-    <p>title</p>
-    <div>Name2</div>
-    <div>
-      <div>Anime</div>
-      <p>message</p>
-    </div>
-    <div>
-      <div>Sports</div>
-      <p>message</p>
-    </div>
-  </div>`
+  <div>
+    <div>Movie</div>
+    <p>message</p>
+  </div>
+  <div>
+    <div>Music</div>
+    <p>message</p>
+  </div>
+</div>
+<div data-gen-cloned="">
+  <p>title</p>
+  <div>Name2</div>
+
+  <div>
+    <div>Anime</div>
+    <p>message</p>
+  </div>
+  <div>
+    <div>Sports</div>
+    <p>message</p>
+  </div>
+</div>`
     )
   );
 });

@@ -127,6 +127,7 @@ test("gen-include with nested data-gen-scope in included html", async ({assert})
     await formatHtml(`<template data-gen-scope="" data-gen-include="testHtml"></template>
     <div data-gen-cloned="">
       <h1>World</h1>
+
       <span>A</span>
       <span>B</span>
     </div>

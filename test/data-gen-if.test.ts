@@ -105,6 +105,7 @@ test("gen-if complex with json and repeat", async ({assert})=> {
   <span class="toc">目次</span>
   <ul>
     <div>[{"h2No":"01","type":"toc-h2","link":"#heading-01","title":"タイトル1"},{"type":"toc-h3","link":"#heading-01","title":"タイトル2"}]</div>
+
     <li class="toc-h2">
       <span class="toc-number">01</span>
       <a href="#heading-01">タイトル1</a>
