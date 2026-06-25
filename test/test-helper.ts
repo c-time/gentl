@@ -57,19 +57,57 @@ export class BrowserDOMEnvironment {
 
 /**
  * テスト用のHappy DOM環境クラス
- * happy-domの new Window() をDOMEnvironment形状に合わせてラップする
+ * happy-domの new Window() をDOMEnvironment形状に合わせてラップする。
+ * cleanup に必要な happyDOM ハンドルを保持し、dispose() で Window を破棄できるようにする。
  */
 export class HappyDOMEnvironment {
   public window: {
     DOMParser: new () => DOMParser;
     document: Document;
   };
+  private readonly happyWindow: Window;
 
   constructor() {
     const w = new Window();
+    this.happyWindow = w;
     this.window = {
       DOMParser: w.DOMParser as unknown as new () => DOMParser,
       document: w.document as unknown as Document,
     };
   }
+
+  async dispose(): Promise<void> {
+    await this.happyWindow.happyDOM?.close?.();
+  }
+}
+
+/**
+ * ライフサイクル検証用の DOM 環境クラスを生成するファクトリ。
+ * JSDOM をラップし、コンストラクタ呼び出し回数と dispose 呼び出し回数を記録する。
+ * テスト間でカウンタが汚染されないよう、テストごとに新しいクラスを生成して使う。
+ */
+export function createCountingDOMEnvironment() {
+  const counters = { constructed: 0, disposed: 0 };
+
+  class CountingDOMEnvironment {
+    public window: {
+      DOMParser: new () => DOMParser;
+      document: Document;
+    };
+
+    constructor() {
+      counters.constructed++;
+      const dom = new JSDOM();
+      this.window = {
+        DOMParser: dom.window.DOMParser,
+        document: dom.window.document,
+      };
+    }
+
+    async dispose(): Promise<void> {
+      counters.disposed++;
+    }
+  }
+
+  return { CountingDOMEnvironment, counters };
 }

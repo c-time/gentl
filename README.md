@@ -117,9 +117,13 @@ class HappyDOMEnvironment {
   constructor() {
     this.window = new Window();
   }
+  // 任意の破棄フック（後述）。process() 完了時に呼ばれ、Window のタイマー等を解放する。
+  async dispose() {
+    await this.window.happyDOM?.close();
+  }
 }
 
-const result = process(
+const result = await process(
   {
     html: '<template data-gen-scope=""><div data-gen-text="name">Default</div></template>',
     data: { name: 'Hello World' }
@@ -132,6 +136,26 @@ const result = process(
 
 console.log(result.html);
 ```
+
+### DOM 環境のライフサイクルと破棄（メモリ管理）
+
+`process()` は受け取った `domEnvironment` を **1 回の呼び出しにつき 1 インスタンスだけ生成し、ページ内の全パース（`data-gen-include` / `data-gen-repeat` / ネストした `data-gen-scope`）で使い回します**。これにより 1 ページのレンダリングで生成される DOM 環境の数は要素数に依らず一定（O(1)/page）になります。
+
+DOM 環境クラスに任意の `dispose()`（または `[Symbol.asyncDispose]()`）を実装すると、`process()` が **出力 HTML を生成し終えた後に自動で呼び出して**環境を破棄します。happy-dom の `Window` はタイマー等のグローバル資源を保持し参照を切っても GC されにくいため、大量ページ／長い一覧 `data-gen-repeat` を扱う場合は `dispose()` で `window.happyDOM.close()` を呼んで明示的に破棄することを推奨します（実装しない場合も動作しますが、メモリが解放されにくくなります）。
+
+```javascript
+class HappyDOMEnvironment {
+  constructor() {
+    this.window = new Window();
+  }
+  // dispose は省略可能・非同期可。実装すると process() 完了時に await されて呼ばれる。
+  async dispose() {
+    await this.window.happyDOM?.close();
+  }
+}
+```
+
+> 破棄処理が失敗しても `process()` の結果や本処理の例外は隠されません（`logger` 指定時は warn ログを出力します）。JSDOM を直接注入する場合など `dispose` 未実装の環境はそのまま動作します（破棄は no-op）。
 
 ## 属性の組み合わせ
 

@@ -39,14 +39,20 @@ const defaultOptions: GentlJOptions = {
 
 
 
-const createQueryRootWrapper = (domEnvironmentConstructor: DOMEnvironmentConstructor): QueryRootWrapper => {
-  return (params: { html: string; rootType: QueryRootType }) => {
-    if (!domEnvironmentConstructor) {
-      throw new Error("DOM environment constructor is required");
-    }
+// process() 1 回につき DOM 環境（env）を 1 つだけ生成して全パースで使い回す。
+// 以前は queryRootWrapper 呼び出し毎に new していたため、ページの要素数に比例して
+// Window が生成・滞留し OOM していた（issue #4）。env は wrapper と dispose の両方に
+// クロージャ経由で共有され、dispose() で注入側に明示破棄させられる。
+const createQueryRootWrapper = (
+  domEnvironmentConstructor: DOMEnvironmentConstructor
+): { queryRootWrapper: QueryRootWrapper; dispose: (logger?: Logger) => Promise<void> } => {
+  if (!domEnvironmentConstructor) {
+    throw new Error("DOM environment constructor is required");
+  }
 
-    const domEnv = new domEnvironmentConstructor();
+  const domEnv = new domEnvironmentConstructor();
 
+  const queryRootWrapper: QueryRootWrapper = (params: { html: string; rootType: QueryRootType }) => {
     if (params.rootType === "htmlDocument") {
       const domParser = new domEnv.window.DOMParser();
       return domParser.parseFromString(params.html, "text/html");
@@ -61,6 +67,32 @@ const createQueryRootWrapper = (domEnvironmentConstructor: DOMEnvironmentConstru
     tmp.innerHTML = params.html;
     return tmp.content;
   };
+
+  // 任意の破棄フック。dispose() / [Symbol.asyncDispose]() のいずれかが実装されていれば
+  // await して呼ぶ。未実装（JSDOM 直接注入やブラウザのグローバル window 等）は no-op。
+  // 本処理の結果・例外を隠さないため、破棄自体の失敗は握り潰す（logger があれば warn）。
+  const dispose = async (logger?: Logger): Promise<void> => {
+    const d = domEnv.dispose ?? domEnv[Symbol.asyncDispose];
+    if (typeof d !== "function") {
+      return;
+    }
+    try {
+      await d.call(domEnv);
+    } catch (error) {
+      if (logger) {
+        logger({
+          level: "warn",
+          message: "Failed to dispose DOM environment",
+          context: {
+            error: error instanceof Error ? error : new Error(String(error)),
+          },
+          timestamp: new Date(),
+        });
+      }
+    }
+  };
+
+  return { queryRootWrapper, dispose };
 };
 
 const getNodes = (
@@ -136,31 +168,37 @@ export const process = async (
     throw new Error("DOM environment is required. Please provide domEnvironment option.");
   }
 
-  const queryRootWrapper = createQueryRootWrapper(absOptions.domEnvironment);
-  const dom = getNodes(opt, queryRootWrapper);
+  // env は process() 1 回につき 1 つ。出力文字列を生成し終えてから finally で破棄する。
+  const { queryRootWrapper, dispose } = createQueryRootWrapper(absOptions.domEnvironment);
+  try {
+    const dom = getNodes(opt, queryRootWrapper);
 
-  if (!dom) {
-    throw new Error("couldn't analyze dom");
-  }
+    if (!dom) {
+      throw new Error("couldn't analyze dom");
+    }
 
-  const generatedDom = await generate({
-    root: dom.root,
-    queryRootWrapper: dom.queryRootWrapper,
-    data: input.data,
-    includeIo: input.includeIo,
-    logger: absOptions.logger,
-    options: {
-      scope: input.scope || "",
-    },
-  });
+    const generatedDom = await generate({
+      root: dom.root,
+      queryRootWrapper: dom.queryRootWrapper,
+      data: input.data,
+      includeIo: input.includeIo,
+      logger: absOptions.logger,
+      options: {
+        scope: input.scope || "",
+      },
+    });
 
-  if (absOptions.rootParserType === "childElement") {
+    if (absOptions.rootParserType === "childElement") {
+      return {
+        html: childElementsToString(Array.from(generatedDom.childNodes)),
+      };
+    }
+
     return {
-      html: childElementsToString(Array.from(generatedDom.childNodes)),
+      html: documentToString(generatedDom),
     };
+  } finally {
+    // 文字列化済みのため Window 破棄は出力に影響しない。generate 再帰の全完了後にのみ呼ぶ。
+    await dispose(absOptions.logger);
   }
-
-  return {
-    html: documentToString(generatedDom),
-  };
 };
